@@ -22,6 +22,8 @@
     "tests"
   ],
   "dependencies": {
-    "traceur": "~0.0.79"
+    "traceur": "~0.0.79",
+    "babylonjs": "~1.10.0",
+    "es6-module-loader": "~0.11.0"
   }
 }

@@ -4,16 +4,19 @@
   <meta charset="UTF-8">
   <title></title>
   <script src="bower_components/traceur/traceur.js"></script>
-  <script src="https://traceur-compiler.googlecode.com/git/src/bootstrap.js"
-          type="text/javascript"></script>
+  <script src="bower_components/es6-module-loader/dist/es6-module-loader.js"></script>
+  <script src="bower_components/babylonjs/babylon.1.10.0.js"></script>
 
+  <script>
+    System.import('Game').then(function (Game) {
+      game = new Game();
+    });
+  </script>
 
-
-
-  <script src="main.js" type="text/traceur"></script>
 </head>
 
-<body onload="start()">
+<!--<body onload="start()">-->
+<body>
 <canvas id="glcanvas" width="640" height="480">
   Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
 </canvas>
