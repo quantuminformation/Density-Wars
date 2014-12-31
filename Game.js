@@ -2,37 +2,53 @@ import Core from 'gameUnits/Core'
 
 export class Game {
 	constructor() {
-
-		this.gl = null; // A global variable for the WebGL context
-
+		var self = this;
 		// Load BABYLON 3D engine
 		this.canvas = document.getElementById("glcanvas");
 		this.engine = new BABYLON.Engine(this.canvas, true);
+		this.scene = this.createScene();
 
-		this.initWebGL(this.canvas);      // Initialize the GL context
-		// Only continue if WebGL is available and working
-		if (this.gl) {
-			this.gl.clearColor(0.0, 0.0, 0.0, 1.0);                      // Set clear color to black, fully opaque
-			this.gl.enable(this.gl.DEPTH_TEST);                               // Enable depth testing
-			this.gl.depthFunc(this.gl.LEQUAL);                                // Near things obscure far things
-			this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);      // Clear the color as well as the depth buffer.
-			this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-		}
+		this.engine.runRenderLoop(function () {
+			self.scene.render();
+		});
+		window.addEventListener("resize", function () {
+			engine.resize();
+		});
 	}
 
-	initWebGL(canvas) {
-		try {
-			// Try to grab the standard context. If it fails, fallback to experimental.
-			this.gl = this.canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-		}
-		catch (e) {
-		}
+	createScene() {
 
-		// If we don't have a GL context, give up now
-		if (!this.gl) {
-			alert("Unable to initialize WebGL. Your browser may not support it.");
-			this.gl = null;
-		}
+		// This creates a basic Babylon Scene object (non-mesh)
+		var scene = new BABYLON.Scene(this.engine);
+
+		// This creates and positions a free camera (non-mesh)
+		var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+
+		// This targets the camera to scene origin
+		camera.setTarget(BABYLON.Vector3.Zero());
+
+		// This attaches the camera to the canvas
+		camera.attachControl(this.canvas, true);
+
+		// This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+		var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+
+		// Default intensity is 1. Let's dim the light a small amount
+		light.intensity = 0.7;
+
+		// Our built-in 'sphere' shape. Params: name, subdivs, size, scene
+		var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
+
+		// Move the sphere upward 1/2 its height
+		sphere.position.y = 1;
+
+		// Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
+		var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
+
+		return scene;
+
 	}
+
+;
 }
 ;
