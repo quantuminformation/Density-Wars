@@ -3,13 +3,8 @@
  * User controllable unit
  */
 export class Core {
-	constructor() {
-
-	}
-
-	draw(){
-		"use strict";
-		//code in here for rendering to babylon
+	constructor(scene) {
+		this.sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
 	}
 }
 
