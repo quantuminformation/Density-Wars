@@ -23,14 +23,12 @@
   "homepage": "https://github.com/QuantumInformation/Density-Wars",
   "devDependencies": {
     "babylonjs": "^2.1.2",
+    "css-loader": "^0.15.6",
     "html-webpack-plugin": "^1.6.0",
     "loader": "^0.1.6",
+    "style-loader": "^0.12.3",
     "typescript": "^1.5.3",
     "typescript-loader": "^1.1.3",
-    "webpack": "^1.10.5",
-    "css-loader": "^0.15.6",
-    "style-loader": "^0.12.3"
-
-
+    "webpack": "^1.11.0"
   }
 }
