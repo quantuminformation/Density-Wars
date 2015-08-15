@@ -1,15 +1,25 @@
-import Core from 'lib/gameUnits/Core'
-import UnitCommand from 'lib/utils/UnitCommand'
+/// <reference path="../babylonjs.d.ts" />
+
+
+import Core from './lib/gameUnits/Core'
+import UnitCommand from './lib/utils/UnitCommand'
 
 
 export class Game {
+  numCores:number;
+  defaultY:number;
+  canvas:HTMLCanvasElement;
+  engine:BABYLON.Engine;
+  scene:BABYLON.Scene;
+  cores:Array<Core>;
+
   constructor() {
     var self = this;
     this.numCores = 6;
     this.defaultY = 1;
 
     // Load BABYLON 3D engine
-    this.canvas = document.getElementById("glcanvas");
+    this.canvas = <HTMLCanvasElement> document.getElementById("glcanvas");
     this.engine = new BABYLON.Engine(this.canvas, true);
     this.scene = new BABYLON.Scene(this.engine);
     this.initScene();
@@ -55,7 +65,7 @@ export class Game {
   //todo from mouse/keyboard
   addCommand() {
     "use strict";
-    var selectedUnits = this.cores.filter(function (unit) {
+    var selectedUnits = this.cores.filter(function (unit:IGameUnit) {
       return unit.isSelected;
     })
     //todo investigate queued commands
@@ -64,7 +74,7 @@ export class Game {
   /**
    positions an array of objects on the edge of a circle equally spaced
    */
-  postionCircular(cores) {
+  postionCircular(cores:Array<IGameUnit>) {
     "use strict";
     for (var i = 0; i < cores.length; i++) {
       var angleDeg = i * (360 / cores.length);
