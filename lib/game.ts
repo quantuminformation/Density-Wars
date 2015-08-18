@@ -1,17 +1,18 @@
 /// <reference path="../babylonjs.d.ts" />
+/// <reference path="gameUnits/Core.ts" />
+/// <reference path="utils/UnitCommand.ts" />
+require('../style.css');
+require('babylonjs');
 
 
-import Core from './lib/gameUnits/Core'
-import UnitCommand from './lib/utils/UnitCommand'
-
-
-export class Game {
+class Game {
   numCores:number;
   defaultY:number;
   canvas:HTMLCanvasElement;
   engine:BABYLON.Engine;
   scene:BABYLON.Scene;
-  cores:Array<Core>;
+  cores:Array<IGameUnit>;
+  selection:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
 
   constructor() {
     var self = this;
@@ -30,10 +31,41 @@ export class Game {
       self.scene.render();
     });
     window.addEventListener("resize", function () {
-     //todo decide what to do here
-     // self.engine.resize();
+      //todo decide what to do here
+      // self.engine.resize();
     });
+
+
+    this.canvas.addEventListener("pointerdown", this.onPointerDown, false);
+    //this.canvas.addEventListener("pointerup", onPointerUp, false);
+    //this.canvas.addEventListener("pointermove", onPointerMove, false);
+
+    this.scene.onDispose = function () {
+      this.canvas.removeEventListener("pointerdown", this.onPointerDown);
+      // this.canvas.removeEventListener("pointerup", onPointerUp);
+      //   this.canvas.removeEventListener("pointermove", onPointerMove);
+    }
   }
+
+  onPointerDown(evt) {
+    if (evt.button !== 0) {
+      return;
+    }
+
+    // check if we are under a mesh
+    /*  var pickInfo = thisscene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh !== ground; });
+     if (pickInfo.hit) {
+     currentMesh = pickInfo.pickedMesh;
+     startingPoint = getGroundPosition(evt);
+
+     if (startingPoint) { // we need to disconnect camera from canvas
+     setTimeout(function () {
+     camera.detachControl(canvas);
+     }, 0);
+     }
+     }*/
+  }
+
 
   initScene() {
     // This creates and positions a free camera (non-mesh)
@@ -56,7 +88,7 @@ export class Game {
     var cores = [];
     for (var i = 0; i < this.numCores; i++) {
       var core = new Core(this.scene);
-      core.sphere.position.y = this.defaultY;
+      core.mesh.position.y = this.defaultY;
       cores.push(core)
     }
     return cores;
@@ -72,18 +104,19 @@ export class Game {
   }
 
   /**
-   positions an array of objects on the edge of a circle equally spaced
+   * positions an array of objects on the edge of a circle equally spaced
+   * @param gameUnits
    */
-  postionCircular(cores:Array<IGameUnit>) {
+  postionCircular(gameUnits:Array<IGameUnit>) {
     "use strict";
-    for (var i = 0; i < cores.length; i++) {
-      var angleDeg = i * (360 / cores.length);
+    for (var i = 0; i < gameUnits.length; i++) {
+      var angleDeg = i * (360 / gameUnits.length);
       var angleRad = (angleDeg / 360) * 2 * Math.PI;
       var customVector = new BABYLON.Vector3(-Math.cos(angleRad), this.defaultY, -Math.sin(angleRad));
-      cores[i].sphere.position = customVector;
+      gameUnits[i].mesh.position = customVector;
     }
   }
-
-;
 }
-;
+
+//start up the game
+new Game();

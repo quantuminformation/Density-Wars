@@ -9,12 +9,12 @@ module.exports = {
     path: __dirname + "/dist",
     filename: "density-wars.js"
   },
-  devtool: "#source-map",
+  devtool: "source-map",
   module: {
     loaders: [
       {
         test: /\.ts$/,
-        loader: 'typescript-loader'
+        loader: 'awesome-typescript-loader'
       },
       { test: /\.css$/, loader: "style-loader!css-loader" }
     ]
