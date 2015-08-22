@@ -1,13 +1,18 @@
 /// <reference path="../babylonjs.d.ts" />
 /// <reference path="gameUnits/Core.ts" />
 /// <reference path="utils/UnitCommand.ts" />
+/// <reference path="utils/Formations.ts" />
+
+
 require('../style.css');
-require('babylonjs');
+import BABYLON = require('babylonjs');
 
 
 class Game {
+  currentUser:User;
+  remoteUsers:Array<User>//other players in the game, start with just 1 for now for simplicity
+
   numCores:number;
-  defaultY:number;
   canvas:HTMLCanvasElement;
   engine:BABYLON.Engine;
   scene:BABYLON.Scene;
@@ -17,7 +22,6 @@ class Game {
   constructor() {
     var self = this;
     this.numCores = 6;
-    this.defaultY = 1;
 
     // Load BABYLON 3D engine
     this.canvas = <HTMLCanvasElement> document.getElementById("glcanvas");
@@ -25,7 +29,7 @@ class Game {
     this.scene = new BABYLON.Scene(this.engine);
     this.initScene();
     this.cores = this.createInitialPlayerUnits();
-    this.postionCircular(this.cores);
+    Formations.postionCircular(this.cores);
 
     this.engine.runRenderLoop(function () {
       self.scene.render();
@@ -88,7 +92,7 @@ class Game {
     var cores = [];
     for (var i = 0; i < this.numCores; i++) {
       var core = new Core(this.scene);
-      core.mesh.position.y = this.defaultY;
+      core.mesh.position.y = Common.defaultY;
       cores.push(core)
     }
     return cores;
@@ -103,19 +107,7 @@ class Game {
     //todo investigate queued commands
   }
 
-  /**
-   * positions an array of objects on the edge of a circle equally spaced
-   * @param gameUnits
-   */
-  postionCircular(gameUnits:Array<IGameUnit>) {
-    "use strict";
-    for (var i = 0; i < gameUnits.length; i++) {
-      var angleDeg = i * (360 / gameUnits.length);
-      var angleRad = (angleDeg / 360) * 2 * Math.PI;
-      var customVector = new BABYLON.Vector3(-Math.cos(angleRad), this.defaultY, -Math.sin(angleRad));
-      gameUnits[i].mesh.position = customVector;
-    }
-  }
+
 }
 
 //start up the game

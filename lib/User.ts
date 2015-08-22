@@ -1,13 +1,13 @@
 /// <reference path="../babylonjs.d.ts" />
 /// <reference path="gameUnits/Core.ts" />
 /// <reference path="utils/UnitCommand.ts" />
-require('babylonjs');
+
 
 /**
- * This represents players in the game. The current user has is own Player instance and remote players also have
- * their own player instance.
+ * This represents users (or game players) in the game. The current user playing has a user type and remote players also have
+ * their own user instance.
  */
-class Player {
+class User {
   units:Array<IGameUnit>;
 
   constructor() {

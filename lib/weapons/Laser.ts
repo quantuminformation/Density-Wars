@@ -9,7 +9,14 @@ class laser {
   constructor() {
 
   }
-  fire(){
 
+  /**
+   * Fires laser from one unit to another
+   * @param from
+   * @param to
+   */
+  fire(from:IGameUnit, to:IGameUnit):boolean {
+    return;
   }
-}ª
+}
+
