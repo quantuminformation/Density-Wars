@@ -2,9 +2,11 @@
 /// <reference path="gameUnits/Core.ts" />
 /// <reference path="utils/UnitCommand.ts" />
 /// <reference path="utils/Formations.ts" />
+/// <reference path="User.ts" />
 
 
 require('../style.css');
+
 import BABYLON = require('babylonjs');
 
 
