@@ -1,6 +1,6 @@
 /// <reference path="../babylonjs.d.ts" />
-/// <reference path="gameUnits/Core.ts" />
-/// <reference path="utils/UnitCommand.ts" />
+/// <reference path="./gameUnits/Core.ts" />
+/// <reference path="./utils/UnitCommand.ts" />
 
 
 /**

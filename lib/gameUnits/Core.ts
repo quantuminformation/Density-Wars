@@ -1,4 +1,4 @@
-/// <reference path="IGameUnit.ts" />
+/// <reference path="./IGameUnit.ts" />
 /// <reference path="../../babylonjs.d.ts" />
 
 

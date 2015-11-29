@@ -1,13 +1,12 @@
-/// <reference path="../babylonjs.d.ts" />
-/// <reference path="gameUnits/Core.ts" />
-/// <reference path="utils/UnitCommand.ts" />
-/// <reference path="utils/Formations.ts" />
-/// <reference path="User.ts" />
-
+/// <reference path="./gameUnits/Core.ts" />
+/// <reference path="./utils/UnitCommand.ts" />
+/// <reference path="./utils/Formations.ts" />
+/// <reference path="./User.ts" />
+declare function require(module: string):any
 
 require('../style.css');
+var BABYLON = require('babylonjs');
 
-import BABYLON = require('babylonjs');
 
 
 class Game {
@@ -91,6 +90,7 @@ class Game {
   }
 
   createInitialPlayerUnits() {
+    //var cores = Array<IGameUnit>;
     var cores = [];
     for (var i = 0; i < this.numCores; i++) {
       var core = new Core(this.scene);
