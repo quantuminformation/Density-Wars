@@ -5,7 +5,7 @@
 declare function require(module: string):any
 
 require('../style.css');
-var BABYLON = require('babylonjs');
+//var BABYLON = require('babylonjs');
 
 
 

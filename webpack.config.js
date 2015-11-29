@@ -21,6 +21,6 @@ module.exports = {
   },
   resolve: {
     // you can now require('file') instead of require('file.js')
-    extensions: ['', '.js', '.json']
+    extensions: ['', '.js', '.json','.ts']
   }
 }
