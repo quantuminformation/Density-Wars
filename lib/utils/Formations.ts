@@ -1,6 +1,6 @@
-/// <reference path="../Common.ts" />
+import Common from "../Common"
 
-class Formations{
+export default class Formations{
   /**
    * positions an array of GameUnit's on the edge of a circle equally spaced
    * @param gameUnits

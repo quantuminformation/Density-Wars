@@ -6,7 +6,7 @@
  *
  * No uni
  */
-class UnitCommand {
+export default class UnitCommand {
 
   groupID:number;
   destination:BABYLON.Vector3;

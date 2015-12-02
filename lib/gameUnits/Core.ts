@@ -1,12 +1,13 @@
 /// <reference path="./IGameUnit.ts" />
-/// <reference path="../../babylonjs.d.ts" />
+
+import UnitCommand from '../utils/UnitCommand';
 
 
 /**
  *
  * User controllable unit
  */
-class Core implements IGameUnit {
+export default class Core implements IGameUnit {
   mesh:BABYLON.Mesh;
   isSelected:boolean;
   modifiers:Array<any>;
@@ -25,7 +26,7 @@ class Core implements IGameUnit {
     var sphereMat = new BABYLON.StandardMaterial("ground", scene);
     sphereMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
     sphereMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    sphereMat.emissiveColor = BABYLON.Color3.Purple();
+    sphereMat.emissiveColor = BABYLON.Color3.Green();
     this.mesh.material = sphereMat;
   }
 }
