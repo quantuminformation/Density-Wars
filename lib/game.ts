@@ -1,13 +1,12 @@
-/// <reference path="./gameUnits/Core.ts" />
-/// <reference path="./utils/UnitCommand.ts" />
-/// <reference path="./utils/Formations.ts" />
-/// <reference path="./User.ts" />
-declare function require(module: string):any
-
-require('../style.css');
-//var BABYLON = require('babylonjs');
+import Core from "./gameUnits/Core"
+import Formations from "./utils/Formations.ts"
+import User from "./User.ts"
+import Common from "./Common"
 
 
+declare function require(module:string):any
+
+require('../styles/main.styl');
 
 class Game {
   currentUser:User;

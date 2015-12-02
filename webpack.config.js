@@ -16,11 +16,13 @@ module.exports = {
         test: /\.ts$/,
         loader: 'ts-loader'
       },
-      { test: /\.css$/, loader: "style-loader!css-loader" }
+      { test: /\.styl$/, loader: 'style-loader!css-loader!stylus-loader' }
+
+
     ]
   },
   resolve: {
     // you can now require('file') instead of require('file.js')
-    extensions: ['', '.js', '.json','.ts']
+    extensions: ['', '.js', '.json', '.ts']
   }
 }
