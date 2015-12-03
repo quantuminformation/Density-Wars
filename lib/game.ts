@@ -7,6 +7,7 @@ import Common from "./Common"
 declare function require(module:string):any
 
 require('../styles/main.styl');
+var BABYLON = require('babylonjs');
 
 class Game {
   currentUser:User;
