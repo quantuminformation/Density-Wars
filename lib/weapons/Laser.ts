@@ -6,6 +6,9 @@
  * //todo add group laser firing and laser adding
  */
 class laser {
+  intialDamage:number = 10;
+  weaponModifier:WeaponModifier = new WeaponModifier();
+
   constructor() {
 
   }
@@ -16,6 +19,7 @@ class laser {
    * @param to
    */
   fire(from:IGameUnit, to:IGameUnit):boolean {
+    //todo draw laser + apply damage to 'tp
     return;
   }
 }
