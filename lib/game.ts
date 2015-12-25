@@ -30,8 +30,9 @@ class Game {
     this.numCores = 6;
 
     // Load BABYLON 3D engine
-    this.canvas = <HTMLCanvasElement> document.getElementById("glcanvas");
-    this.engine = new BABYLON.Engine(this.canvas, true);
+    this.engine = new BABYLON.Engine(<HTMLCanvasElement> document.getElementById("glcanvas"), true);
+
+    this.canvas = this.engine.getRenderingCanvas();
     this.scene = new BABYLON.Scene(this.engine);
     this.initScene();
     this.cores = this.createInitialPlayerUnits();
@@ -55,6 +56,26 @@ class Game {
       // this.canvas.removeEventListener("pointerup", onPointerUp);
       //   this.canvas.removeEventListener("pointermove", onPointerMove);
     }
+
+    //external
+    this.canvas.addEventListener("pointerdown", e => {
+
+        if (e.button !== 0) {
+          return;
+        }
+
+        // check if we are under a mesh
+        var pickInfo = this.scene.pick(this.scene.pointerX, this.scene.pointerY, function (mesh) {
+          return mesh !== this.ground.mesh;
+        });
+        if (!pickInfo.hit) {
+          this.cores.forEach(core=> {
+            core.deselect();
+          })
+        }
+      },
+      false);
+
   }
 
   onPointerDown(evt) {
@@ -92,8 +113,6 @@ class Game {
     // Move the sphere upward 1/2 its height
     // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
     this.ground = new Ground(this.scene);
-
-
 
 
   }

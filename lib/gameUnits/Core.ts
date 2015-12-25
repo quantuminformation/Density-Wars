@@ -55,5 +55,10 @@ export default class Core implements IGameUnit {
     self.isSelected = true;
     e.meshUnderPointer.showBoundingBox = true;
   }
+
+  deselect() {
+    self.isSelected = false;
+    this.mesh.showBoundingBox = false;
+  }
 }
 

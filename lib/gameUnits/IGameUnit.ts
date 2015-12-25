@@ -5,4 +5,5 @@ export interface IGameUnit {
   mesh: BABYLON.Mesh; //mesh that represents this game unit.
   click: (e:MouseEvent)=>void;
   hitPoints:number; // The default amount of damage this unit can take
+  deselect: ()=>void
 }
