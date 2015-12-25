@@ -3,7 +3,7 @@ Density-Wars
 
 RTS game running on WebGL using BabylonJS.
 
-#(Demo)[www.quantuminformation.github.io/Density-Wars/]
+#(Demo)[http://quantuminformation.github.io/Density-Wars/]
 
 Aim
 ===

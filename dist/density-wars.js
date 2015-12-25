@@ -55,6 +55,7 @@
 	var Formations_ts_1 = __webpack_require__(3);
 	var Common_1 = __webpack_require__(4);
 	__webpack_require__(5);
+	//import BABYLON from 'babylonjs'
 	var Game = (function () {
 	    function Game() {
 	        var self = this;
