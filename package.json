@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc main.ts dist/"
+    "start": "webpack --watch --watch-polling"
   },
   "repository": {
     "type": "git",

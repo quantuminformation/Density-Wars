@@ -1,4 +1,6 @@
 import Common from "../Common"
+import {IGameUnit} from "../gameUnits/IGameUnit";
+
 
 export default class Formations{
   /**

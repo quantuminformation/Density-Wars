@@ -2,11 +2,15 @@ import Core from "./gameUnits/Core"
 import Formations from "./utils/Formations.ts"
 import User from "./User.ts"
 import Common from "./Common"
+import {IGameUnit} from "./gameUnits/IGameUnit";
+import Ground from "./Ground";
 
 
 declare function require(module:string):any
 
 require('../styles/main.styl');
+
+//todo I can't figure out a way to import with webpack so I load in index.html
 //import BABYLON from 'babylonjs'
 
 class Game {
@@ -18,6 +22,7 @@ class Game {
   engine:BABYLON.Engine;
   scene:BABYLON.Scene;
   cores:Array<IGameUnit>;
+  ground:Ground;
   selection:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
 
   constructor() {
@@ -36,8 +41,8 @@ class Game {
       self.scene.render();
     });
     window.addEventListener("resize", function () {
-      //todo decide what to do here
-      // self.engine.resize();
+      //todo some logic
+      self.engine.resize();
     });
 
 
@@ -86,7 +91,11 @@ class Game {
     light.intensity = 0.7;
     // Move the sphere upward 1/2 its height
     // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-    var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, this.scene);
+    this.ground = new Ground(this.scene);
+
+
+
+
   }
 
   createInitialPlayerUnits() {
