@@ -52,9 +52,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Core_1 = __webpack_require__(2);
-	var Formations_ts_1 = __webpack_require__(3);
-	var Common_1 = __webpack_require__(4);
-	__webpack_require__(5);
+	var Formations_ts_1 = __webpack_require__(4);
+	var Common_1 = __webpack_require__(3);
+	var Ground_1 = __webpack_require__(5);
+	__webpack_require__(6);
+	//todo I can't figure out a way to import with webpack so I load in index.html
 	//import BABYLON from 'babylonjs'
 	var Game = (function () {
 	    function Game() {
@@ -71,8 +73,8 @@
 	            self.scene.render();
 	        });
 	        window.addEventListener("resize", function () {
-	            //todo decide what to do here
-	            // self.engine.resize();
+	            //todo some logic
+	            self.engine.resize();
 	        });
 	        this.canvas.addEventListener("pointerdown", this.onPointerDown, false);
 	        //this.canvas.addEventListener("pointerup", onPointerUp, false);
@@ -113,7 +115,7 @@
 	        light.intensity = 0.7;
 	        // Move the sphere upward 1/2 its height
 	        // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-	        var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, this.scene);
+	        this.ground = new Ground_1.default(this.scene);
 	    };
 	    Game.prototype.createInitialPlayerUnits = function () {
 	        //var cores = Array<IGameUnit>;
@@ -141,25 +143,40 @@
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	/// <reference path="./IGameUnit.ts" />
+	var Common_1 = __webpack_require__(3);
 	/**
 	 *
 	 * User controllable unit
 	 */
 	var Core = (function () {
-	    function Core(scene) {
+	    function Core(scene, isSelected) {
+	        if (isSelected === void 0) { isSelected = false; }
 	        this.hitPoints = 10;
-	        this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
+	        this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common_1.default.MEDIUM_UNIT_SIZE, scene);
+	        this.isSelected; //selected units receive commands
+	        this.isSelected; //selected units receive commands
 	        this.isSelected; //selected units receive commands
 	        this.modifiers = []; //powerups,shields etc
-	        var sphereMat = new BABYLON.StandardMaterial("ground", scene);
-	        sphereMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-	        sphereMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-	        sphereMat.emissiveColor = BABYLON.Color3.Green();
-	        this.mesh.material = sphereMat;
+	        this.selectedMaterial = new BABYLON.StandardMaterial("selected", scene);
+	        this.selectedMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+	        this.selectedMaterial.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+	        // sphereMat.emissiveColor = BABYLON.Color3.Green();
+	        //Creation of a material with wireFrame
+	        this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
+	        this.defaultMaterial.wireframe = true;
+	        this.mesh.material = this.defaultMaterial;
 	    }
+	    Core.prototype.setSelected = function (isSelected) {
+	        this.isSelected = isSelected;
+	        if (this.isSelected) {
+	            this.mesh.material = this.selectedMaterial;
+	        }
+	        else {
+	            this.mesh.material = this.defaultMaterial;
+	        }
+	    };
 	    return Core;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -168,9 +185,29 @@
 
 /***/ },
 /* 3 */
+/***/ function(module, exports) {
+
+	/**
+	 * Stuff that's shared among a lot of things in this game
+	 */
+	var Common = (function () {
+	    function Common() {
+	    }
+	    Common.defaultY = 1; // presently all the objects are on the same horizontal plane
+	    Common.MEDIUM_UNIT_SIZE = 1;
+	    Common.MEDIUM_SIZE_MAP = 40;
+	    Common.MEDIUM_SIZE_MAP_SUBDIVISIONS = 10;
+	    return Common;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = Common;
+
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Common_1 = __webpack_require__(4);
+	var Common_1 = __webpack_require__(3);
 	var Formations = (function () {
 	    function Formations() {
 	    }
@@ -194,33 +231,41 @@
 
 
 /***/ },
-/* 4 */
-/***/ function(module, exports) {
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
 
+	var Common_1 = __webpack_require__(3);
 	/**
-	 * Stuff thats shared amoung a lot of things in this game
+	 *
+	 * The ground (actually a grid in space) that the game sits upon
 	 */
-	var Common = (function () {
-	    function Common() {
+	var Ground = (function () {
+	    function Ground(scene) {
+	        //Creation of a material with wireFrame
+	        this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
+	        this.defaultMaterial.wireframe = true;
+	        this.mesh = BABYLON.Mesh.CreateGround("ground1", Common_1.default.MEDIUM_SIZE_MAP, Common_1.default.MEDIUM_SIZE_MAP, Common_1.default.MEDIUM_SIZE_MAP_SUBDIVISIONS, scene);
+	        this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
+	        this.defaultMaterial.wireframe = true;
+	        this.mesh.material = this.defaultMaterial;
 	    }
-	    Common.defaultY = 1; // presently all the objects are on the same horizontal plane
-	    return Common;
+	    return Ground;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = Common;
+	exports.default = Ground;
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(6);
+	var content = __webpack_require__(7);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(8)(content, {});
+	var update = __webpack_require__(9)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -237,10 +282,10 @@
 	}
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(7)();
+	exports = module.exports = __webpack_require__(8)();
 	// imports
 	
 	
@@ -251,7 +296,7 @@
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	/*
@@ -307,7 +352,7 @@
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
