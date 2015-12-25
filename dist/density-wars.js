@@ -150,32 +150,32 @@
 	 *
 	 * User controllable unit
 	 */
+	//todo I don't like this
+	var self;
 	var Core = (function () {
 	    function Core(scene, isSelected) {
 	        if (isSelected === void 0) { isSelected = false; }
+	        this.isSelected = false; //selected units can receive new commands
 	        this.hitPoints = 10;
+	        self = this; //for use ExecuteCodeAction callbacks
 	        this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common_1.default.MEDIUM_UNIT_SIZE, scene);
 	        this.isSelected; //selected units receive commands
-	        this.isSelected; //selected units receive commands
-	        this.isSelected; //selected units receive commands
 	        this.modifiers = []; //powerups,shields etc
-	        this.selectedMaterial = new BABYLON.StandardMaterial("selected", scene);
-	        this.selectedMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-	        this.selectedMaterial.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-	        // sphereMat.emissiveColor = BABYLON.Color3.Green();
-	        //Creation of a material with wireFrame
-	        this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
-	        this.defaultMaterial.wireframe = true;
-	        this.mesh.material = this.defaultMaterial;
+	        this.material = new BABYLON.StandardMaterial("green", scene);
+	        this.material.diffuseColor = new BABYLON.Color3(0.8, 0.4, 0.4);
+	        this.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+	        // this.material.emissiveColor = BABYLON.Color3.Green();
+	        this.mesh.material = this.material;
+	        this.mesh.actionManager = new BABYLON.ActionManager(scene);
+	        //show bounding box for selected elements
+	        this.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, this.select));
+	        //show user where mouse is hovering over
+	        this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, this.mesh.material, "diffuseColor", BABYLON.Color3.White()));
+	        this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, this.mesh.material, "diffuseColor", this.material.diffuseColor));
 	    }
-	    Core.prototype.setSelected = function (isSelected) {
-	        this.isSelected = isSelected;
-	        if (this.isSelected) {
-	            this.mesh.material = this.selectedMaterial;
-	        }
-	        else {
-	            this.mesh.material = this.defaultMaterial;
-	        }
+	    Core.prototype.select = function (e) {
+	        self.isSelected = true;
+	        e.meshUnderPointer.showBoundingBox = true;
 	    };
 	    return Core;
 	})();
@@ -290,7 +290,7 @@
 	
 	
 	// module
-	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
+	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n.players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
 	
 	// exports
 
