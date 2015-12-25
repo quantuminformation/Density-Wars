@@ -15,7 +15,7 @@ export default class Core implements IGameUnit {
   click:(e:MouseEvent)=>void;
 
   defaultMaterial:BABYLON.StandardMaterial;
-  selectedMaterial:BABYLON.StandardMaterial;
+  material:BABYLON.StandardMaterial;
 
   //todo investigate the feasibility of chained commands or queued commands
   //currentCommands:Array<any>;
@@ -24,30 +24,27 @@ export default class Core implements IGameUnit {
   constructor(scene, isSelected = false) {
     this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common.MEDIUM_UNIT_SIZE, scene);
     this.isSelected;//selected units receive commands
-    this.isSelected;//selected units receive commands
-    this.isSelected;//selected units receive commands
     this.modifiers = [];//powerups,shields etc
 
-    this.selectedMaterial = new BABYLON.StandardMaterial("selected", scene);
-    this.selectedMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    this.selectedMaterial.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-    // sphereMat.emissiveColor = BABYLON.Color3.Green();
+    this.material = new BABYLON.StandardMaterial("green", scene);
+    this.material.diffuseColor = new BABYLON.Color3(0.8, 0.4, 0.4);
+    this.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
 
-    //Creation of a material with wireFrame
-    this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
-    this.defaultMaterial.wireframe = true;
+    // this.material.emissiveColor = BABYLON.Color3.Green();
 
-    this.mesh.material = this.defaultMaterial;
-  }
+    this.mesh.material = this.material;
 
-  setSelected(isSelected:boolean) {
-    this.isSelected = isSelected;
-    if (this.isSelected) {
-      this.mesh.material = this.selectedMaterial;
-    }
-    else {
-      this.mesh.material = this.defaultMaterial;
-    }
+    this.mesh.actionManager = new BABYLON.ActionManager(scene);
+
+    this.mesh.actionManager.registerAction(
+      new BABYLON.SetValueAction(BABYLON.ActionManager.OnPickTrigger, this.mesh.material, "wireframe", true)
+      )
+      .then(
+        new BABYLON.DoNothingAction()
+      );
+    this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, this.mesh.material, "diffuseColor", BABYLON.Color3.White()));
+    this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, this.mesh.material, "diffuseColor", this.material.diffuseColor));
+
   }
 }
 
