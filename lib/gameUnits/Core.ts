@@ -18,6 +18,7 @@ export default class Core implements IGameUnit {
   modifiers:Array<any>;
   hitPoints:number = 10;
   click:(e:MouseEvent)=>void;
+  baseSpeed:number = Common.MEDIUM_SPEED;
 
   defaultMaterial:BABYLON.StandardMaterial;
   material:BABYLON.StandardMaterial;
@@ -59,6 +60,11 @@ export default class Core implements IGameUnit {
   deselect() {
     self.isSelected = false;
     this.mesh.showBoundingBox = false;
+  }
+
+  currentSpeed() {
+    //todo speed modifiers
+    return this.baseSpeed;
   }
 }
 

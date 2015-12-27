@@ -11,7 +11,7 @@ export default class Common{
 
   static MEDIUM_SIZE_MAP_SUBDIVISIONS:number = 40;
 
-
+  static MEDIUM_SPEED = 10;
 
 
 }

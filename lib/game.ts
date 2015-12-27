@@ -99,23 +99,21 @@ class Game {
 
     this.scene.onPointerDown = (evt, pickResult:PickingInfo) => {
 
+      //ignore if not click
       if (evt.button !== 0) {
         return;
       }
+      //check for ground hit
+      if (pickResult.pickedMesh === self.ground.mesh) {
 
-      // check if we are under a mesh
-      var pickInfo = self.scene.pick(self.scene.pointerX, self.scene.pointerY, function (mesh) {
-        return mesh !== self.ground.mesh;
-      });
-      if (!pickInfo.hit) {
-        return;
-        /*  this.cores.forEach(core=> {
-         core.deselect();
-         })*/
+        //ground hit, now check if any units selected
+        if (self.cores.filter((item:IGameUnit) => {
+            return item.isSelected;
+          }).length) {
+          self.addMoveCommand(pickResult.pickedPoint);
+        }
       }
-
-      this.addMoveCommand(pickResult.pickedPoint);
-    }
+    };
 
     // Skybox
     var skybox = BABYLON.Mesh.CreateBox("skyBox", 750.0, this.scene);
@@ -128,31 +126,29 @@ class Game {
 
   }
 
-  getGroundPosition () {
-  // Use a predicate to get position on the ground
-  var pickinfo = this.scene.pick(this.scene.pointerX, this.scene.pointerY, function (mesh) { return mesh !== this.ground.mesh; });
-  if (pickinfo.hit) {
-    return pickinfo.pickedPoint;
-  }
-
-  return null;
-}
-
 
   //todo from mouse/keyboard
   addMoveCommand(pickResult:Vector3) {
-    this.cores.filter( (unit:IGameUnit)=> {
+    console.log(pickResult);
+    this.cores.filter((unit:IGameUnit)=> {
       return unit.isSelected;
     }).forEach((unit:IGameUnit)=> {
-      var animationBezierTorus = new BABYLON.Animation("animationBezierTorus", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+
+      //pythagoras
+      var distance = Math.sqrt(Math.pow(pickResult.x - unit.mesh.position.x, 2) + Math.pow(pickResult.z - unit.mesh.position.z, 2);
+    //  console.log(distance);
+      var framesNeeded = Math.round(Common.MEDIUM_SPEED * distance);
+
+      var animationBezierTorus = new BABYLON.Animation("animationCore", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
       var keysBezierTorus = [];
       keysBezierTorus.push({frame: 0, value: unit.mesh.position});
+
       keysBezierTorus.push({
-        frame: 120,
-        value: unit.mesh.position.add(new BABYLON.Vector3(pickResult.x, pickResult.y, 0))
+        frame: framesNeeded,
+        value: unit.mesh.position = new BABYLON.Vector3(pickResult.x, 0, pickResult.z);
       });
       animationBezierTorus.setKeys(keysBezierTorus);
-      var bezierEase = new BABYLON.BezierCurveEase(0.32, -0.73, 0.69, 1.59);
+      var bezierEase = new BABYLON.BezierCurveEase(0.445, 0.05, 0.55, 0.95);
       animationBezierTorus.setEasingFunction(bezierEase);
       unit.mesh.animations.push(animationBezierTorus);
       this.scene.beginAnimation(unit.mesh, 0, 120, true);

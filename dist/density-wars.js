@@ -58,51 +58,50 @@
 	__webpack_require__(6);
 	//todo I can't figure out a way to import with webpack so I load in index.html
 	//import BABYLON from 'babylonjs'
+	var self; //todo not sure about this
 	var Game = (function () {
 	    function Game() {
-	        var self = this;
-	        this.numCores = 6;
+	        var _this = this;
+	        this.startingNumberOfCores = 6;
+	        self = this;
 	        // Load BABYLON 3D engine
-	        this.canvas = document.getElementById("glcanvas");
-	        this.engine = new BABYLON.Engine(this.canvas, true);
-	        this.scene = new BABYLON.Scene(this.engine);
+	        this.engine = new BABYLON.Engine(document.getElementById("glcanvas"), true);
+	        this.canvas = this.engine.getRenderingCanvas();
 	        this.initScene();
 	        this.cores = this.createInitialPlayerUnits();
 	        Formations_ts_1.default.postionCircular(this.cores);
 	        this.engine.runRenderLoop(function () {
-	            self.scene.render();
+	            _this.scene.render();
 	        });
 	        window.addEventListener("resize", function () {
 	            //todo some logic
 	            self.engine.resize();
 	        });
-	        this.canvas.addEventListener("pointerdown", this.onPointerDown, false);
-	        //this.canvas.addEventListener("pointerup", onPointerUp, false);
-	        //this.canvas.addEventListener("pointermove", onPointerMove, false);
 	        this.scene.onDispose = function () {
-	            this.canvas.removeEventListener("pointerdown", this.onPointerDown);
+	            //   this.canvas.removeEventListener("pointerdown", this.onPointerDown);
 	            // this.canvas.removeEventListener("pointerup", onPointerUp);
 	            //   this.canvas.removeEventListener("pointermove", onPointerMove);
 	        };
 	    }
-	    Game.prototype.onPointerDown = function (evt) {
-	        if (evt.button !== 0) {
-	            return;
-	        }
-	        // check if we are under a mesh
-	        /*  var pickInfo = thisscene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh !== ground; });
-	         if (pickInfo.hit) {
-	         currentMesh = pickInfo.pickedMesh;
-	         startingPoint = getGroundPosition(evt);
-	    
-	         if (startingPoint) { // we need to disconnect camera from canvas
-	         setTimeout(function () {
-	         camera.detachControl(canvas);
-	         }, 0);
-	         }
-	         }*/
-	    };
+	    /*  onPointerDown(evt) {
+	     if (evt.button !== 0) {
+	     return;
+	     }*/
+	    // check if we are under a mesh
+	    /*  var pickInfo = thisscene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh !== ground; });
+	     if (pickInfo.hit) {
+	     currentMesh = pickInfo.pickedMesh;
+	     startingPoint = getGroundPosition(evt);
+	  
+	     if (startingPoint) { // we need to disconnect camera from canvas
+	     setTimeout(function () {
+	     camera.detachControl(canvas);
+	     }, 0);
+	     }
+	     }*/
+	    // }
 	    Game.prototype.initScene = function () {
+	        this.scene = new BABYLON.Scene(this.engine);
 	        // This creates and positions a free camera (non-mesh)
 	        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), this.scene);
 	        // This targets the camera to scene origin
@@ -116,24 +115,65 @@
 	        // Move the sphere upward 1/2 its height
 	        // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
 	        this.ground = new Ground_1.default(this.scene);
+	        this.scene.onPointerDown = function (evt, pickResult) {
+	            //ignore if not click
+	            if (evt.button !== 0) {
+	                return;
+	            }
+	            //check for ground hit
+	            if (pickResult.pickedMesh === self.ground.mesh) {
+	                //ground hit, now check if any units selected
+	                if (self.cores.filter(function (item) {
+	                    return item.isSelected;
+	                }).length) {
+	                    self.addMoveCommand(pickResult.pickedPoint);
+	                }
+	            }
+	        };
+	        // Skybox
+	        var skybox = BABYLON.Mesh.CreateBox("skyBox", 750.0, this.scene);
+	        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+	        skyboxMaterial.backFaceCulling = false;
+	        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+	        skyboxMaterial.emissiveColor = new BABYLON.Color3(0, 0.0, 0.0);
+	        skybox.material = skyboxMaterial;
+	    };
+	    //todo from mouse/keyboard
+	    Game.prototype.addMoveCommand = function (pickResult) {
+	        var _this = this;
+	        console.log(pickResult);
+	        this.cores.filter(function (unit) {
+	            return unit.isSelected;
+	        }).forEach(function (unit) {
+	            //pythagoras
+	            var distance = Math.sqrt(Math.pow(pickResult.x - unit.mesh.position.x, 2) + Math.pow(pickResult.z - unit.mesh.position.z, 2));
+	            //  console.log(distance);
+	            var framesNeeded = Math.round(Common_1.default.MEDIUM_SPEED * distance);
+	            var animationBezierTorus = new BABYLON.Animation("animationCore", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+	            var keysBezierTorus = [];
+	            keysBezierTorus.push({ frame: 0, value: unit.mesh.position });
+	            keysBezierTorus.push({
+	                frame: framesNeeded,
+	                value: unit.mesh.position = new BABYLON.Vector3(pickResult.x, 0, pickResult.z)
+	            });
+	            animationBezierTorus.setKeys(keysBezierTorus);
+	            var bezierEase = new BABYLON.BezierCurveEase(0.445, 0.05, 0.55, 0.95);
+	            animationBezierTorus.setEasingFunction(bezierEase);
+	            unit.mesh.animations.push(animationBezierTorus);
+	            _this.scene.beginAnimation(unit.mesh, 0, 120, true);
+	        });
+	        //todo investigate queued commands
 	    };
 	    Game.prototype.createInitialPlayerUnits = function () {
 	        //var cores = Array<IGameUnit>;
 	        var cores = [];
-	        for (var i = 0; i < this.numCores; i++) {
+	        for (var i = 0; i < this.startingNumberOfCores; i++) {
 	            var core = new Core_1.default(this.scene);
 	            core.mesh.position.y = Common_1.default.defaultY;
 	            cores.push(core);
 	        }
 	        return cores;
-	    };
-	    //todo from mouse/keyboard
-	    Game.prototype.addCommand = function () {
-	        "use strict";
-	        var selectedUnits = this.cores.filter(function (unit) {
-	            return unit.isSelected;
-	        });
-	        //todo investigate queued commands
 	    };
 	    return Game;
 	})();
@@ -157,6 +197,7 @@
 	        if (isSelected === void 0) { isSelected = false; }
 	        this.isSelected = false; //selected units can receive new commands
 	        this.hitPoints = 10;
+	        this.baseSpeed = Common_1.default.MEDIUM_SPEED;
 	        self = this; //for use ExecuteCodeAction callbacks
 	        this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common_1.default.MEDIUM_UNIT_SIZE, scene);
 	        this.isSelected; //selected units receive commands
@@ -177,6 +218,14 @@
 	        self.isSelected = true;
 	        e.meshUnderPointer.showBoundingBox = true;
 	    };
+	    Core.prototype.deselect = function () {
+	        self.isSelected = false;
+	        this.mesh.showBoundingBox = false;
+	    };
+	    Core.prototype.currentSpeed = function () {
+	        //todo speed modifiers
+	        return this.baseSpeed;
+	    };
 	    return Core;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -195,8 +244,9 @@
 	    }
 	    Common.defaultY = 1; // presently all the objects are on the same horizontal plane
 	    Common.MEDIUM_UNIT_SIZE = 1;
-	    Common.MEDIUM_SIZE_MAP = 40;
-	    Common.MEDIUM_SIZE_MAP_SUBDIVISIONS = 10;
+	    Common.MEDIUM_SIZE_MAP = 80;
+	    Common.MEDIUM_SIZE_MAP_SUBDIVISIONS = 40;
+	    Common.MEDIUM_SPEED = 10;
 	    return Common;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -241,13 +291,16 @@
 	 */
 	var Ground = (function () {
 	    function Ground(scene) {
-	        //Creation of a material with wireFrame
-	        this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
-	        this.defaultMaterial.wireframe = true;
-	        this.mesh = BABYLON.Mesh.CreateGround("ground1", Common_1.default.MEDIUM_SIZE_MAP, Common_1.default.MEDIUM_SIZE_MAP, Common_1.default.MEDIUM_SIZE_MAP_SUBDIVISIONS, scene);
-	        this.defaultMaterial = new BABYLON.StandardMaterial("wireframe", scene);
-	        this.defaultMaterial.wireframe = true;
-	        this.mesh.material = this.defaultMaterial;
+	        //Creation of a plane with a texture
+	        this.mesh = BABYLON.Mesh.CreatePlane("ground", Common_1.default.MEDIUM_SIZE_MAP, scene);
+	        var matGround = new BABYLON.StandardMaterial("matGround", scene);
+	        matGround.diffuseTexture = new BABYLON.Texture("lib/assets/img/background.png", scene);
+	        matGround.diffuseTexture.uScale = Common_1.default.MEDIUM_SIZE_MAP_SUBDIVISIONS;
+	        matGround.diffuseTexture.vScale = Common_1.default.MEDIUM_SIZE_MAP_SUBDIVISIONS;
+	        matGround.specularColor = new BABYLON.Color3(0, 0, 0);
+	        this.mesh.material = matGround;
+	        this.mesh.rotation.x = Math.PI / 2;
+	        this.mesh.position = new BABYLON.Vector3(0, 0, 0);
 	    }
 	    return Ground;
 	})();
