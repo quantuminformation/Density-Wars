@@ -7,9 +7,9 @@ export default class Common{
 
   static MEDIUM_UNIT_SIZE:number = 1;
 
-  static MEDIUM_SIZE_MAP:number = 40;
+  static MEDIUM_SIZE_MAP:number = 80;
 
-  static MEDIUM_SIZE_MAP_SUBDIVISIONS:number = 10;
+  static MEDIUM_SIZE_MAP_SUBDIVISIONS:number = 40;
 
 
 
