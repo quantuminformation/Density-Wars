@@ -1,7 +1,7 @@
 /**
  * Modifies the stats of a weapon
  */
-class WeaponModifier {
+export default class WeaponModifier {
   DamageAddition:number = 0
   DamageMultiplier:number = 1;
 

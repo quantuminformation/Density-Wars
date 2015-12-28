@@ -1,3 +1,6 @@
+import {IGameUnit} from "../gameUnits/IGameUnit";
+import WeaponModifier from "../modifiers/WeaponModifier";
+
 /**
  * Fires a laser from one game object to another
  *
@@ -5,7 +8,7 @@
  *
  * //todo add group laser firing and laser adding
  */
-class laser {
+export default class laser {
   intialDamage:number = 10;
   weaponModifier:WeaponModifier = new WeaponModifier();
 
@@ -18,7 +21,7 @@ class laser {
    * @param from
    * @param to
    */
-  fire(from:IGameUnit, to:IGameUnit):boolean {
+  fire(from:IGameUnit, to:IGameUnit, scene:BABYLON.Scene):boolean {
     //todo draw laser + apply damage to 'tp
     return;
   }
