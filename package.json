@@ -30,8 +30,5 @@
     "ts-loader": "^0.7.2",
     "typescript": "^1.7.5",
     "webpack": "^1.11.0"
-  },
-  "dependencies": {
-    "babylonjs": "^2.2.0"
   }
 }

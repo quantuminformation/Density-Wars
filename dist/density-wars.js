@@ -52,10 +52,12 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Core_1 = __webpack_require__(2);
-	var Formations_ts_1 = __webpack_require__(4);
+	var Formations_ts_1 = __webpack_require__(6);
 	var Common_1 = __webpack_require__(3);
-	var Ground_1 = __webpack_require__(5);
-	__webpack_require__(6);
+	var Ground_1 = __webpack_require__(7);
+	var Vector3 = BABYLON.Vector3;
+	var CenterOfMassMarker_1 = __webpack_require__(8);
+	__webpack_require__(9);
 	//todo I can't figure out a way to import with webpack so I load in index.html
 	//import BABYLON from 'babylonjs'
 	var self; //todo not sure about this
@@ -69,41 +71,26 @@
 	        this.canvas = this.engine.getRenderingCanvas();
 	        this.initScene();
 	        this.cores = this.createInitialPlayerUnits();
-	        Formations_ts_1.default.postionCircular(this.cores);
+	        var formation = Formations_ts_1.default.circularGrouping(this.cores.length, new Vector3(0, 0, 0));
+	        for (var i = 0; i < this.cores.length; i++) {
+	            this.cores[i].mesh.position = formation[i];
+	        }
+	        this.centerOfMass = new CenterOfMassMarker_1.default(this.scene, true);
+	        this.centerOfMass.mesh.position = Formations_ts_1.default.getCentroid(this.cores);
 	        this.engine.runRenderLoop(function () {
+	            _this.centerOfMass.mesh.position = Formations_ts_1.default.getCentroid(_this.cores);
 	            _this.scene.render();
 	        });
 	        window.addEventListener("resize", function () {
 	            //todo some logic
 	            self.engine.resize();
 	        });
-	        this.scene.onDispose = function () {
-	            //   this.canvas.removeEventListener("pointerdown", this.onPointerDown);
-	            // this.canvas.removeEventListener("pointerup", onPointerUp);
-	            //   this.canvas.removeEventListener("pointermove", onPointerMove);
-	        };
 	    }
-	    /*  onPointerDown(evt) {
-	     if (evt.button !== 0) {
-	     return;
-	     }*/
-	    // check if we are under a mesh
-	    /*  var pickInfo = thisscene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh !== ground; });
-	     if (pickInfo.hit) {
-	     currentMesh = pickInfo.pickedMesh;
-	     startingPoint = getGroundPosition(evt);
-	  
-	     if (startingPoint) { // we need to disconnect camera from canvas
-	     setTimeout(function () {
-	     camera.detachControl(canvas);
-	     }, 0);
-	     }
-	     }*/
-	    // }
 	    Game.prototype.initScene = function () {
+	        var _this = this;
 	        this.scene = new BABYLON.Scene(this.engine);
 	        // This creates and positions a free camera (non-mesh)
-	        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), this.scene);
+	        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this.scene);
 	        // This targets the camera to scene origin
 	        camera.setTarget(BABYLON.Vector3.Zero());
 	        // This attaches the camera to the canvas
@@ -120,6 +107,18 @@
 	            if (evt.button !== 0) {
 	                return;
 	            }
+	            //deselction of of other units if todo add to selection (shift
+	            var isOwnUnitHit = _this.cores.some(function (el) {
+	                return pickResult.pickedMesh === el.mesh;
+	            });
+	            if (isOwnUnitHit) {
+	                //desselect others
+	                _this.cores.filter(function (el) {
+	                    return pickResult.pickedMesh !== el.mesh;
+	                }).forEach(function (el) {
+	                    el.deselect();
+	                });
+	            }
 	            //check for ground hit
 	            if (pickResult.pickedMesh === self.ground.mesh) {
 	                //ground hit, now check if any units selected
@@ -128,6 +127,8 @@
 	                }).length) {
 	                    self.addMoveCommand(pickResult.pickedPoint);
 	                }
+	            }
+	            else {
 	            }
 	        };
 	        // Skybox
@@ -138,42 +139,52 @@
 	        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	        skyboxMaterial.emissiveColor = new BABYLON.Color3(0, 0.0, 0.0);
 	        skybox.material = skyboxMaterial;
+	        this.setUpDummyEnemy();
 	    };
 	    //todo from mouse/keyboard
 	    Game.prototype.addMoveCommand = function (pickResult) {
-	        var _this = this;
 	        console.log(pickResult);
-	        this.cores.filter(function (unit) {
+	        var selectedUnits = this.cores.filter(function (unit) {
 	            return unit.isSelected;
-	        }).forEach(function (unit) {
+	        });
+	        var formation = Formations_ts_1.default.circularGrouping(selectedUnits.length, pickResult);
+	        for (var i = 0; i < selectedUnits.length; i++) {
+	            var unit = selectedUnits[i];
 	            //pythagoras
 	            var distance = Math.sqrt(Math.pow(pickResult.x - unit.mesh.position.x, 2) + Math.pow(pickResult.z - unit.mesh.position.z, 2));
-	            //  console.log(distance);
-	            var framesNeeded = Math.round(Common_1.default.MEDIUM_SPEED * distance);
-	            var animationBezierTorus = new BABYLON.Animation("animationCore", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+	            var framesNeeded = Math.round((distance / Common_1.default.MEDIUM_SPEED) * Common_1.default.ANIMATIONS_FPS);
+	            console.log('dist: ' + distance + ' frames' + framesNeeded);
+	            var animationBezierTorus = new BABYLON.Animation("animationCore", "position", Common_1.default.ANIMATIONS_FPS, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 	            var keysBezierTorus = [];
 	            keysBezierTorus.push({ frame: 0, value: unit.mesh.position });
 	            keysBezierTorus.push({
 	                frame: framesNeeded,
-	                value: unit.mesh.position = new BABYLON.Vector3(pickResult.x, 0, pickResult.z)
+	                value: unit.mesh.position = formation[i]
 	            });
 	            animationBezierTorus.setKeys(keysBezierTorus);
-	            var bezierEase = new BABYLON.BezierCurveEase(0.445, 0.05, 0.55, 0.95);
-	            animationBezierTorus.setEasingFunction(bezierEase);
+	            // var bezierEase = new BABYLON.BezierCurveEase(0.445, 0.05, 0.55, 0.95);
+	            //animationBezierTorus.setEasingFunction(bezierEase);
 	            unit.mesh.animations.push(animationBezierTorus);
-	            _this.scene.beginAnimation(unit.mesh, 0, 120, true);
-	        });
+	            this.scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
+	        }
+	        ;
 	        //todo investigate queued commands
 	    };
 	    Game.prototype.createInitialPlayerUnits = function () {
 	        //var cores = Array<IGameUnit>;
 	        var cores = [];
 	        for (var i = 0; i < this.startingNumberOfCores; i++) {
-	            var core = new Core_1.default(this.scene);
+	            var core = new Core_1.default(this.scene, true);
 	            core.mesh.position.y = Common_1.default.defaultY;
 	            cores.push(core);
 	        }
 	        return cores;
+	    };
+	    Game.prototype.setUpDummyEnemy = function () {
+	        var core = new Core_1.default(this.scene, false);
+	        core.mesh.position = new Vector3(10, Common_1.default.defaultY, 10);
+	        {
+	        }
 	    };
 	    return Game;
 	})();
@@ -186,40 +197,55 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Common_1 = __webpack_require__(3);
+	var Laser_1 = __webpack_require__(4);
 	/**
 	 *
-	 * User controllable unit
+	 * Controllable unit
 	 */
-	//todo I don't like this
-	var self;
+	//todo team colours, friendlies
 	var Core = (function () {
-	    function Core(scene, isSelected) {
+	    /**
+	     *
+	     * @param scene
+	     * @param isOwn
+	     * @param isSelected
+	     */
+	    function Core(scene, isOwn, isSelected) {
 	        if (isSelected === void 0) { isSelected = false; }
 	        this.isSelected = false; //selected units can receive new commands
 	        this.hitPoints = 10;
 	        this.baseSpeed = Common_1.default.MEDIUM_SPEED;
-	        self = this; //for use ExecuteCodeAction callbacks
+	        this.weapon = new Laser_1.default();
+	        this.mass = 1;
 	        this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common_1.default.MEDIUM_UNIT_SIZE, scene);
+	        // this.mesh.parentClass = this;
 	        this.isSelected; //selected units receive commands
 	        this.modifiers = []; //powerups,shields etc
+	        this.isOwn = isOwn;
 	        this.material = new BABYLON.StandardMaterial("green", scene);
-	        this.material.diffuseColor = new BABYLON.Color3(0.8, 0.4, 0.4);
-	        this.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+	        if (isOwn) {
+	            this.material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.8);
+	            this.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.8);
+	        }
+	        else {
+	            this.material.diffuseColor = new BABYLON.Color3(0.8, 0.4, 0.4);
+	            this.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+	        }
 	        // this.material.emissiveColor = BABYLON.Color3.Green();
 	        this.mesh.material = this.material;
 	        this.mesh.actionManager = new BABYLON.ActionManager(scene);
 	        //show bounding box for selected elements
-	        this.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, this.select));
+	        this.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, this.select.bind(this)));
 	        //show user where mouse is hovering over
 	        this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, this.mesh.material, "diffuseColor", BABYLON.Color3.White()));
 	        this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, this.mesh.material, "diffuseColor", this.material.diffuseColor));
 	    }
 	    Core.prototype.select = function (e) {
-	        self.isSelected = true;
+	        this.isSelected = true;
 	        e.meshUnderPointer.showBoundingBox = true;
 	    };
 	    Core.prototype.deselect = function () {
-	        self.isSelected = false;
+	        this.isSelected = false;
 	        this.mesh.showBoundingBox = false;
 	    };
 	    Core.prototype.currentSpeed = function () {
@@ -246,7 +272,8 @@
 	    Common.MEDIUM_UNIT_SIZE = 1;
 	    Common.MEDIUM_SIZE_MAP = 80;
 	    Common.MEDIUM_SIZE_MAP_SUBDIVISIONS = 40;
-	    Common.MEDIUM_SPEED = 10;
+	    Common.MEDIUM_SPEED = 3;
+	    Common.ANIMATIONS_FPS = 30; //this is distance units per second
 	    return Common;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -257,22 +284,108 @@
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var WeaponModifier_1 = __webpack_require__(5);
+	/**
+	 * Fires a laser from one game object to another
+	 *
+	 * For simplicity it fires and renders instantly(speed of light) and remains 1 second afterglow
+	 *
+	 * //todo add group laser firing and laser adding
+	 */
+	var laser = (function () {
+	    function laser() {
+	        this.intialDamage = 10;
+	        this.weaponModifier = new WeaponModifier_1.default();
+	    }
+	    /**
+	     * Fires laser from one unit to another
+	     * @param from
+	     * @param to
+	     */
+	    laser.prototype.fire = function (from, to, scene) {
+	        //todo draw laser + apply damage to 'tp
+	        var mesh = BABYLON.Mesh.CreateBox("beam", { width: 0.1, height: 0.1, depth: 10 }, scene);
+	        mesh.position = from.mesh.position;
+	        var material = new BABYLON.StandardMaterial("green", scene);
+	        material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.8);
+	        material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.8);
+	        material.emissiveColor = BABYLON.Color3.Green();
+	        mesh.material = material;
+	        return;
+	    };
+	    return laser;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = laser;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	/**
+	 * Modifies the stats of a weapon
+	 */
+	var WeaponModifier = (function () {
+	    function WeaponModifier() {
+	        this.DamageAddition = 0;
+	        this.DamageMultiplier = 1;
+	    }
+	    return WeaponModifier;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = WeaponModifier;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var Common_1 = __webpack_require__(3);
+	var Vector3 = BABYLON.Vector3;
 	var Formations = (function () {
 	    function Formations() {
 	    }
 	    /**
-	     * positions an array of GameUnit's on the edge of a circle equally spaced
-	     * @param gameUnits
+	     * returns array of vector3 on the edge of a circle equally spaced around a given point
+	  
+	     * @param amount
+	     * @param center
+	     * @param spacing
+	     * @returns {Array<Vector3>}
 	     */
-	    Formations.postionCircular = function (gameUnits) {
-	        "use strict";
-	        for (var i = 0; i < gameUnits.length; i++) {
-	            var angleDeg = i * (360 / gameUnits.length);
-	            var angleRad = (angleDeg / 360) * 2 * Math.PI;
-	            var customVector = new BABYLON.Vector3(-Math.cos(angleRad), Common_1.default.defaultY, -Math.sin(angleRad));
-	            gameUnits[i].mesh.position = customVector;
+	    Formations.circularGrouping = function (amount, center, spacing) {
+	        if (spacing === void 0) { spacing = 1; }
+	        if (amount < 1) {
 	        }
+	        var arr = [];
+	        if (amount === 1) {
+	            arr.push(center);
+	            return arr;
+	        }
+	        for (var i = 0; i < amount; i++) {
+	            var angleDeg = i * (360 / amount);
+	            var angleRad = (angleDeg / 360) * 2 * Math.PI;
+	            var customVector = new BABYLON.Vector3(-Math.cos(angleRad) * spacing, Common_1.default.defaultY * spacing, -Math.sin(angleRad) * spacing);
+	            arr.push(center.add(customVector));
+	        }
+	        return arr;
+	    };
+	    /**
+	     * Gets centroid (center of mass) of units
+	     * @param units
+	     * @returns {BABYLON.Vector3}
+	       */
+	    Formations.getCentroid = function (units) {
+	        var totalMass = 0;
+	        var totalX = 0;
+	        var totalZ = 0;
+	        units.forEach(function (unit) {
+	            totalMass += unit.mass;
+	            totalX += unit.mesh.position.x * unit.mass;
+	            totalZ += unit.mesh.position.z * unit.mass;
+	        });
+	        return new Vector3(totalX / totalMass, Common_1.default.defaultY, totalZ / totalMass);
 	    };
 	    return Formations;
 	})();
@@ -281,7 +394,7 @@
 
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Common_1 = __webpack_require__(3);
@@ -309,16 +422,54 @@
 
 
 /***/ },
-/* 6 */
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Common_1 = __webpack_require__(3);
+	/**
+	 * CenterOfMassMarker
+	 *
+	 * Shows center of mass of all units
+	 */
+	//todo team colours, friendlies
+	var CenterOfMassMarker = (function () {
+	    /**
+	     *
+	     * @param scene
+	     * @param isOwn
+	     */
+	    function CenterOfMassMarker(scene, isOwn) {
+	        this.mesh = BABYLON.Mesh.CreateBox("sphere1", { width: Common_1.default.MEDIUM_UNIT_SIZE, height: Common_1.default.MEDIUM_UNIT_SIZE }, scene);
+	        this.isOwn = isOwn;
+	        var material = new BABYLON.StandardMaterial("green", scene);
+	        if (isOwn) {
+	            material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+	            material.specularColor = new BABYLON.Color3(1, 1, 1);
+	        }
+	        else {
+	            material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	            material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	        }
+	        material.emissiveColor = BABYLON.Color3.Green();
+	        this.mesh.material = material;
+	    }
+	    return CenterOfMassMarker;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = CenterOfMassMarker;
+
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(7);
+	var content = __webpack_require__(10);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(9)(content, {});
+	var update = __webpack_require__(12)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -335,10 +486,10 @@
 	}
 
 /***/ },
-/* 7 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(8)();
+	exports = module.exports = __webpack_require__(11)();
 	// imports
 	
 	
@@ -349,7 +500,7 @@
 
 
 /***/ },
-/* 8 */
+/* 11 */
 /***/ function(module, exports) {
 
 	/*
@@ -405,7 +556,7 @@
 
 
 /***/ },
-/* 9 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*

@@ -21,6 +21,7 @@ export default class Core implements IGameUnit {
   click:(e:MouseEvent)=>void;
   baseSpeed:number = Common.MEDIUM_SPEED;
   weapon:Laser = new Laser();
+  mass:number = 1;
 
 
   defaultMaterial:BABYLON.StandardMaterial;
@@ -39,6 +40,7 @@ export default class Core implements IGameUnit {
   constructor(scene, isOwn, isSelected = false) {
 
     this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common.MEDIUM_UNIT_SIZE, scene);
+   // this.mesh.parentClass = this;
     this.isSelected;//selected units receive commands
     this.modifiers = [];//powerups,shields etc
     this.isOwn = isOwn;
@@ -73,7 +75,7 @@ export default class Core implements IGameUnit {
   }
 
   deselect() {
-    //  self.isSelected = false;
+    this.isSelected = false;
     this.mesh.showBoundingBox = false;
   }
 

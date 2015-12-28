@@ -32,4 +32,24 @@ export default class Formations {
 
     return arr;
   }
+
+  /**
+   * Gets centroid (center of mass) of units
+   * @param units
+   * @returns {BABYLON.Vector3}
+     */
+  static getCentroid(units:Array<IGameUnit>) {
+    var totalMass:number = 0;
+    var totalX:number = 0;
+    var totalZ:number = 0;
+    units.forEach(unit=> {
+      totalMass += unit.mass;
+      totalX += unit.mesh.position.x * unit.mass
+      totalZ += unit.mesh.position.z * unit.mass
+    })
+
+    return new Vector3 (totalX / totalMass,Common.defaultY, totalZ / totalMass);
+  }
+
+
 }

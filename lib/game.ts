@@ -6,6 +6,7 @@ import Ground from "./Ground";
 import RemotePlayer from "./RemotePlayer";
 import PickingInfo = BABYLON.PickingInfo;
 import Vector3 = BABYLON.Vector3;
+import CenterOfMassMarker from "./gameUnits/CenterOfMassMarker";
 
 
 declare function require(module:string):any
@@ -28,6 +29,7 @@ class Game {
   cores:Array<IGameUnit>;
   ground:Ground;
   selection:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
+  centerOfMass:CenterOfMassMarker;
 
   constructor() {
     self = this;
@@ -45,7 +47,12 @@ class Game {
       this.cores[i].mesh.position = formation[i];
     }
 
+    this.centerOfMass = new CenterOfMassMarker(this.scene, true);
+    this.centerOfMass.mesh.position = Formations.getCentroid(this.cores);
+
     this.engine.runRenderLoop(() => {
+      this.centerOfMass.mesh.position = Formations.getCentroid(this.cores);
+
       this.scene.render();
     });
     window.addEventListener("resize", function () {
@@ -53,33 +60,7 @@ class Game {
       self.engine.resize();
     });
 
-
-    this.scene.onDispose = function () {
-      //   this.canvas.removeEventListener("pointerdown", this.onPointerDown);
-      // this.canvas.removeEventListener("pointerup", onPointerUp);
-      //   this.canvas.removeEventListener("pointermove", onPointerMove);
-    }
-
   }
-
-  /*  onPointerDown(evt) {
-   if (evt.button !== 0) {
-   return;
-   }*/
-
-  // check if we are under a mesh
-  /*  var pickInfo = thisscene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh !== ground; });
-   if (pickInfo.hit) {
-   currentMesh = pickInfo.pickedMesh;
-   startingPoint = getGroundPosition(evt);
-
-   if (startingPoint) { // we need to disconnect camera from canvas
-   setTimeout(function () {
-   camera.detachControl(canvas);
-   }, 0);
-   }
-   }*/
-  // }
 
 
   initScene() {
@@ -106,6 +87,20 @@ class Game {
       if (evt.button !== 0) {
         return;
       }
+
+      //deselction of of other units if todo add to selection (shift
+      var isOwnUnitHit = this.cores.some((el:IGameUnit)=> {
+        return pickResult.pickedMesh === el.mesh
+      });
+      if (isOwnUnitHit) {
+        //desselect others
+        this.cores.filter((el:IGameUnit)=> {
+          return pickResult.pickedMesh !== el.mesh
+        }).forEach((el:IGameUnit)=> {
+          el.deselect();
+        })
+      }
+
       //check for ground hit
       if (pickResult.pickedMesh === self.ground.mesh) {
 
@@ -115,6 +110,8 @@ class Game {
           }).length) {
           self.addMoveCommand(pickResult.pickedPoint);
         }
+      } else {
+
       }
     };
 
