@@ -65,6 +65,8 @@
 	    function Game() {
 	        var _this = this;
 	        this.startingNumberOfCores = 6;
+	        //todo move to remote Users
+	        this.enemyUnits = [];
 	        self = this;
 	        // Load BABYLON 3D engine
 	        this.engine = new BABYLON.Engine(document.getElementById("glcanvas"), true);
@@ -112,12 +114,27 @@
 	                return pickResult.pickedMesh === el.mesh;
 	            });
 	            if (isOwnUnitHit) {
+	                if (evt.shiftKey) {
+	                    return; // the unit will select itself in the events manager
+	                }
 	                //desselect others
 	                _this.cores.filter(function (el) {
 	                    return pickResult.pickedMesh !== el.mesh;
 	                }).forEach(function (el) {
 	                    el.deselect();
 	                });
+	                return;
+	            }
+	            //check for enemy targeted
+	            for (var i = 0; i < _this.enemyUnits.length; i++) {
+	                if (pickResult.pickedMesh === _this.enemyUnits[i].mesh) {
+	                    _this.cores.filter(function (el) {
+	                        return el.isSelected;
+	                    }).forEach(function (el) {
+	                        el.weapon.fire(el, _this.enemyUnits[i], _this.scene);
+	                    });
+	                    return;
+	                }
 	            }
 	            //check for ground hit
 	            if (pickResult.pickedMesh === self.ground.mesh) {
@@ -139,7 +156,7 @@
 	        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	        skyboxMaterial.emissiveColor = new BABYLON.Color3(0, 0.0, 0.0);
 	        skybox.material = skyboxMaterial;
-	        this.setUpDummyEnemy();
+	        this.setUpDummyEnemys();
 	    };
 	    //todo from mouse/keyboard
 	    Game.prototype.addMoveCommand = function (pickResult) {
@@ -180,11 +197,10 @@
 	        }
 	        return cores;
 	    };
-	    Game.prototype.setUpDummyEnemy = function () {
+	    Game.prototype.setUpDummyEnemys = function () {
 	        var core = new Core_1.default(this.scene, false);
 	        core.mesh.position = new Vector3(10, Common_1.default.defaultY, 10);
-	        {
-	        }
+	        this.enemyUnits.push(core);
 	    };
 	    return Game;
 	})();
@@ -278,6 +294,31 @@
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = Common;
+	exports.KEYS = {
+	    BACKSPACE: 8,
+	    TAB: 9,
+	    RETURN: 13,
+	    ESC: 27,
+	    SPACE: 32,
+	    LEFT: 37,
+	    UP: 38,
+	    RIGHT: 39,
+	    DOWN: 40,
+	    DELETE: 46,
+	    HOME: 36,
+	    END: 35,
+	    PAGEUP: 33,
+	    PAGEDOWN: 34,
+	    INSERT: 45,
+	    ZERO: 48,
+	    ONE: 49,
+	    TWO: 50,
+	    A: 65,
+	    L: 76,
+	    P: 80,
+	    Q: 81,
+	    TILDA: 192
+	};
 
 
 /***/ },
@@ -285,6 +326,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var WeaponModifier_1 = __webpack_require__(5);
+	var Formations_1 = __webpack_require__(6);
 	/**
 	 * Fires a laser from one game object to another
 	 *
@@ -304,8 +346,22 @@
 	     */
 	    laser.prototype.fire = function (from, to, scene) {
 	        //todo draw laser + apply damage to 'tp
-	        var mesh = BABYLON.Mesh.CreateBox("beam", { width: 0.1, height: 0.1, depth: 10 }, scene);
+	        var distance = Formations_1.default.Distance2D(from.mesh.position, to.mesh.position);
+	        var mesh = BABYLON.Mesh.CreateCylinder("cylinder", distance, 0.1, 0.1, 36, 2, scene, true);
+	        mesh.setPivotMatrix(BABYLON.Matrix.Translation(0, -distance / 2, 0));
 	        mesh.position = from.mesh.position;
+	        var v1 = from.mesh.position.subtract(to.mesh.position);
+	        v1.normalize();
+	        var v2 = new BABYLON.Vector3(0, 1, 0);
+	        // Using cross we will have a vector perpendicular to both vectors
+	        var axis = BABYLON.Vector3.Cross(v1, v2);
+	        axis.normalize();
+	        console.log(axis);
+	        // Angle between vectors
+	        var angle = BABYLON.Vector3.Dot(v1, v2);
+	        console.log(angle);
+	        // Then using axis rotation the result is obvious
+	        mesh.rotationQuaternion = BABYLON.Quaternion.RotationAxis(axis, -Math.PI / 2 + angle);
 	        var material = new BABYLON.StandardMaterial("green", scene);
 	        material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.8);
 	        material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.8);
@@ -386,6 +442,9 @@
 	            totalZ += unit.mesh.position.z * unit.mass;
 	        });
 	        return new Vector3(totalX / totalMass, Common_1.default.defaultY, totalZ / totalMass);
+	    };
+	    Formations.Distance2D = function (from, to) {
+	        return Math.sqrt(Math.pow(from.x - to.x, 2) + Math.pow(from.z - to.z, 2));
 	    };
 	    return Formations;
 	})();
@@ -494,7 +553,7 @@
 	
 	
 	// module
-	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n.players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
+	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n.players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n#guide {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  top: 20px;\n  left: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#guide h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#guide h2 {\n  font-size: 13px;\n}\n#guide p {\n  font-size: 10px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
 	
 	// exports
 

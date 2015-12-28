@@ -27,6 +27,10 @@ class Game {
   engine:BABYLON.Engine;
   scene:BABYLON.Scene;
   cores:Array<IGameUnit>;
+
+  //todo move to remote Users
+  enemyUnits:Array<IGameUnit> = [];
+
   ground:Ground;
   selection:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
   centerOfMass:CenterOfMassMarker;
@@ -93,12 +97,29 @@ class Game {
         return pickResult.pickedMesh === el.mesh
       });
       if (isOwnUnitHit) {
+        if(evt.shiftKey){
+          return; // the unit will select itself in the events manager
+        }
+
         //desselect others
         this.cores.filter((el:IGameUnit)=> {
           return pickResult.pickedMesh !== el.mesh
         }).forEach((el:IGameUnit)=> {
           el.deselect();
-        })
+        });
+        return;
+      }
+
+      //check for enemy targeted
+      for (var i = 0; i < this.enemyUnits.length; i++) {
+        if (pickResult.pickedMesh === this.enemyUnits[i].mesh) {
+          this.cores.filter((el:IGameUnit)=> {
+            return el.isSelected;
+          }).forEach((el:IGameUnit)=> {
+            el.weapon.fire(el, this.enemyUnits[i], this.scene)
+          });
+          return;
+        }
       }
 
       //check for ground hit
@@ -123,16 +144,16 @@ class Game {
     skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     skyboxMaterial.emissiveColor = new BABYLON.Color3(0, 0.0, 0.0);
     skybox.material = skyboxMaterial;
-    this.setUpDummyEnemy();
+    this.setUpDummyEnemys();
   }
 
 
-  //todo from mouse/keyboard
+//todo from mouse/keyboard
   addMoveCommand(pickResult:Vector3) {
     console.log(pickResult);
     var selectedUnits = this.cores.filter((unit:IGameUnit)=> {
       return unit.isSelected;
-    })
+    });
 
     var formation = Formations.circularGrouping(selectedUnits.length, pickResult);
     for (var i = 0; i < selectedUnits.length; i++) {
@@ -174,12 +195,10 @@ class Game {
     return cores;
   }
 
-  setUpDummyEnemy() {
+  setUpDummyEnemys() {
     var core = new Core(this.scene, false);
-    core.mesh.position = new Vector3(10, Common.defaultY, 10)
-    {
-
-    }
+    core.mesh.position = new Vector3(10, Common.defaultY, 10);
+    this.enemyUnits.push(core);
   }
 
 }

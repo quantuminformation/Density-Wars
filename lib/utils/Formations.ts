@@ -50,6 +50,10 @@ export default class Formations {
 
     return new Vector3 (totalX / totalMass,Common.defaultY, totalZ / totalMass);
   }
+  static Distance2D(from:Vector3,to:Vector3) {
+    return Math.sqrt(Math.pow(from.x - to.x, 2) + Math.pow(from.z -to .z, 2));
+
+  }
 
 
 }

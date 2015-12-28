@@ -7,4 +7,5 @@ export interface IGameUnit {
   hitPoints:number; // The default amount of damage this unit can take
   deselect: ()=>void
   mass:number;
+  weapon:any;
 }
