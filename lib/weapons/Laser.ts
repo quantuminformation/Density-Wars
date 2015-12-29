@@ -2,16 +2,18 @@ import {IGameUnit} from "../gameUnits/IGameUnit";
 import WeaponModifier from "../modifiers/WeaponModifier";
 import StandardMaterial = BABYLON.StandardMaterial;
 import Formations from "../utils/Formations";
+import Common from "../Common";
+import {IWeapon} from "./IWeapon";
 
 /**
  * Fires a laser from one game object to another
  *
  * For simplicity it fires and renders instantly(speed of light) and remains 1 second afterglow
  *
- * //todo add group laser firing and laser adding
+ * //todo add range dependant laser damage for lasers that diffuse through area like this one
  */
-export default class laser {
-  intialDamage:number = 10;
+export default class Laser implements IWeapon {
+  initialDamage:number = 5;
   weaponModifier:WeaponModifier = new WeaponModifier();
 
   constructor() {
@@ -24,12 +26,13 @@ export default class laser {
    * @param to
    */
   fire(from:IGameUnit, to:IGameUnit, scene:BABYLON.Scene):boolean {
-    //todo draw laser + apply damage to 'tp
+    //todo apply damage to target
+    to.takeDamage(this.initialDamage);
 
     var distance = Formations.Distance2D(from.mesh.position, to.mesh.position);
 
 
-    var mesh = BABYLON.Mesh.CreateCylinder("cylinder", distance, 0.1, 0.1, 36,2, scene, true);
+    var mesh:BABYLON.Mesh = BABYLON.Mesh.CreateCylinder("cylinder", distance, 0.02, 0.2, 36, 2, scene, true);
 
     mesh.setPivotMatrix(BABYLON.Matrix.Translation(0, -distance / 2, 0));
     mesh.position = from.mesh.position;
@@ -58,6 +61,18 @@ export default class laser {
 
     material.emissiveColor = BABYLON.Color3.Green();
     mesh.material = material;
+
+    var animationFadeOut = new BABYLON.Animation("animationCore", "position", Common.ANIMATIONS_FPS, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+/*    var keys = [];
+    keys.push({frame: 0, value: 1});
+
+    keys.push({
+      frame: Common.ANIMATIONS_FPS * 2, //fade lasting n seconds
+      value: 0
+    });*/
+   // animationFadeOut.setKeys(keys);
+  //  scene.beginAnimation(material.alpha, 0, Common.ANIMATIONS_FPS * 21,true,1, ()=> mesh.dispose());
+
 
     return;
   }

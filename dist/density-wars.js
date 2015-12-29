@@ -201,6 +201,9 @@
 	        var core = new Core_1.default(this.scene, false);
 	        core.mesh.position = new Vector3(10, Common_1.default.defaultY, 10);
 	        this.enemyUnits.push(core);
+	        var core2 = new Core_1.default(this.scene, false);
+	        core2.mesh.position = new Vector3(11, Common_1.default.defaultY, 11);
+	        this.enemyUnits.push(core2);
 	    };
 	    return Game;
 	})();
@@ -268,6 +271,19 @@
 	        //todo speed modifiers
 	        return this.baseSpeed;
 	    };
+	    Core.prototype.takeDamage = function (damage) {
+	        this.hitPoints -= damage;
+	        if (this.hitPoints < 1) {
+	            this.explode();
+	        }
+	    };
+	    /**
+	     * Removes mesh
+	     * //todo expode graphics + hitpoints
+	     */
+	    Core.prototype.explode = function () {
+	        this.mesh.dispose();
+	    };
 	    return Core;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -327,16 +343,17 @@
 
 	var WeaponModifier_1 = __webpack_require__(5);
 	var Formations_1 = __webpack_require__(6);
+	var Common_1 = __webpack_require__(3);
 	/**
 	 * Fires a laser from one game object to another
 	 *
 	 * For simplicity it fires and renders instantly(speed of light) and remains 1 second afterglow
 	 *
-	 * //todo add group laser firing and laser adding
+	 * //todo add range dependant laser damage for lasers that diffuse through area like this one
 	 */
-	var laser = (function () {
-	    function laser() {
-	        this.intialDamage = 10;
+	var Laser = (function () {
+	    function Laser() {
+	        this.initialDamage = 5;
 	        this.weaponModifier = new WeaponModifier_1.default();
 	    }
 	    /**
@@ -344,10 +361,11 @@
 	     * @param from
 	     * @param to
 	     */
-	    laser.prototype.fire = function (from, to, scene) {
-	        //todo draw laser + apply damage to 'tp
+	    Laser.prototype.fire = function (from, to, scene) {
+	        //todo apply damage to target
+	        to.takeDamage(this.initialDamage);
 	        var distance = Formations_1.default.Distance2D(from.mesh.position, to.mesh.position);
-	        var mesh = BABYLON.Mesh.CreateCylinder("cylinder", distance, 0.1, 0.1, 36, 2, scene, true);
+	        var mesh = BABYLON.Mesh.CreateCylinder("cylinder", distance, 0.02, 0.2, 36, 2, scene, true);
 	        mesh.setPivotMatrix(BABYLON.Matrix.Translation(0, -distance / 2, 0));
 	        mesh.position = from.mesh.position;
 	        var v1 = from.mesh.position.subtract(to.mesh.position);
@@ -367,12 +385,22 @@
 	        material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.8);
 	        material.emissiveColor = BABYLON.Color3.Green();
 	        mesh.material = material;
+	        var animationFadeOut = new BABYLON.Animation("animationCore", "position", Common_1.default.ANIMATIONS_FPS, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+	        /*    var keys = [];
+	            keys.push({frame: 0, value: 1});
+	        
+	            keys.push({
+	              frame: Common.ANIMATIONS_FPS * 2, //fade lasting n seconds
+	              value: 0
+	            });*/
+	        // animationFadeOut.setKeys(keys);
+	        //  scene.beginAnimation(material.alpha, 0, Common.ANIMATIONS_FPS * 21,true,1, ()=> mesh.dispose());
 	        return;
 	    };
-	    return laser;
+	    return Laser;
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = laser;
+	exports.default = Laser;
 
 
 /***/ },
@@ -553,7 +581,7 @@
 	
 	
 	// module
-	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n.players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n#guide {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  top: 20px;\n  left: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#guide h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#guide h2 {\n  font-size: 13px;\n}\n#guide p {\n  font-size: 10px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
+	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n.players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n#guide {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  top: 20px;\n  left: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#guide h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#guide h2 {\n  font-size: 13px;\n}\n#guide p {\n  font-size: 10px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n#canvas2D {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  z-index: 1;\n}\n", ""]);
 	
 	// exports
 

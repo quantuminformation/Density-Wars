@@ -1,5 +1,6 @@
 /// <reference path="../../babylonjs.d.ts" />
 
+import {IWeapon} from "../weapons/IWeapon";
 export interface IGameUnit {
   isSelected:boolean; //set on when a user clicks on it or draws a selction around it
   mesh: BABYLON.Mesh; //mesh that represents this game unit.
@@ -7,5 +8,7 @@ export interface IGameUnit {
   hitPoints:number; // The default amount of damage this unit can take
   deselect: ()=>void
   mass:number;
-  weapon:any;
+  weapon:IWeapon;
+  takeDamage:(amount)=>void;
+  explode:()=>void;
 }

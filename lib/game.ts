@@ -199,6 +199,9 @@ class Game {
     var core = new Core(this.scene, false);
     core.mesh.position = new Vector3(10, Common.defaultY, 10);
     this.enemyUnits.push(core);
+    var core2 = new Core(this.scene, false);
+    core2.mesh.position = new Vector3(11, Common.defaultY, 11);
+    this.enemyUnits.push(core2);
   }
 
 }

@@ -3,6 +3,7 @@ import Common from "../Common";
 import {IGameUnit} from "../gameUnits/IGameUnit";
 import ActionEvent = BABYLON.ActionEvent;
 import Laser from "../weapons/Laser";
+import {IWeapon} from "../weapons/IWeapon";
 
 
 /**
@@ -40,7 +41,7 @@ export default class Core implements IGameUnit {
   constructor(scene, isOwn, isSelected = false) {
 
     this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common.MEDIUM_UNIT_SIZE, scene);
-   // this.mesh.parentClass = this;
+    // this.mesh.parentClass = this;
     this.isSelected;//selected units receive commands
     this.modifiers = [];//powerups,shields etc
     this.isOwn = isOwn;
@@ -82,6 +83,21 @@ export default class Core implements IGameUnit {
   currentSpeed() {
     //todo speed modifiers
     return this.baseSpeed;
+  }
+
+  takeDamage(damage) {
+    this.hitPoints -= damage;
+    if (this.hitPoints < 1) {
+      this.explode();
+    }
+  }
+
+  /**
+   * Removes mesh
+   * //todo expode graphics + hitpoints
+   */
+  explode() {
+    this.mesh.dispose()
   }
 }
 
