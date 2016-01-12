@@ -5,9 +5,12 @@ import {IGameUnit} from "./gameUnits/IGameUnit";
  */
 export default class RemotePlayer  {
 
-  name:string;
   isUser:boolean; //if true player is current in control user
   units:Array<IGameUnit>;
+  constructor(public name:string){
+
+  }
+
 
 }
 
