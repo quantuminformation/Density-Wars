@@ -3,8 +3,8 @@ import Formations from "./utils/Formations.ts"
 import Common from "./Common"
 import {IGameUnit} from "./gameUnits/IGameUnit";
 import Ground from "./Ground";
-import RemotePlayer from "./RemotePlayer";
 import PickingInfo = BABYLON.PickingInfo;
+import Lobby from './hud/Lobby'
 import Vector3 = BABYLON.Vector3;
 import CenterOfMassMarker from "./gameUnits/CenterOfMassMarker";
 import GameOverlay from "./hud/GameOverlay";
@@ -22,8 +22,7 @@ var self;//todo not sure about this
 
 class Game {
   startingNumberOfCores:number = 6;
-
-  remoteUsers:Array<RemotePlayer>//other players in the game, start with just 1 for now for simplicity
+  lobby:Lobby = new Lobby();
 
   canvas:HTMLCanvasElement;
   engine:BABYLON.Engine;
