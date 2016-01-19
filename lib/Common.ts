@@ -13,10 +13,6 @@ export default class Common{
 
   static MEDIUM_SPEED = 3;
   static ANIMATIONS_FPS = 30; //this is distance units per second
-
-
-
-
 }
 
 export var KEYS = {
@@ -43,4 +39,9 @@ export var KEYS = {
   P: 80,
   Q: 81,
   TILDA: 192
+}
+
+
+export var MOUSE = {
+  LEFT:1
 }

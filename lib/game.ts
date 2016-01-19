@@ -7,11 +7,13 @@ import RemotePlayer from "./RemotePlayer";
 import PickingInfo = BABYLON.PickingInfo;
 import Vector3 = BABYLON.Vector3;
 import CenterOfMassMarker from "./gameUnits/CenterOfMassMarker";
+import GameOverlay from "./hud/GameOverlay";
+import FreeCamera = BABYLON.FreeCamera;
 
 
 declare function require(module:string):any
 
-require('../styles/main.styl');
+require('../styles/index.styl');
 
 //todo I can't figure out a way to import with webpack so I load in index.html
 //import BABYLON from 'babylonjs'
@@ -27,6 +29,7 @@ class Game {
   engine:BABYLON.Engine;
   scene:BABYLON.Scene;
   cores:Array<IGameUnit>;
+  camera:FreeCamera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this.scene);
 
   //todo move to remote Users
   enemyUnits:Array<IGameUnit> = [];
@@ -34,6 +37,7 @@ class Game {
   ground:Ground;
   selection:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
   centerOfMass:CenterOfMassMarker;
+  gameOverlay:GameOverlay = new GameOverlay(this.scene,this.camera);
 
   constructor() {
     self = this;
@@ -64,18 +68,18 @@ class Game {
       self.engine.resize();
     });
 
+    this.gameOverlay.showUnitsStatus(this.cores);
+
   }
 
 
   initScene() {
     this.scene = new BABYLON.Scene(this.engine);
 
-    // This creates and positions a free camera (non-mesh)
-    var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this.scene);
     // This targets the camera to scene origin
-    camera.setTarget(BABYLON.Vector3.Zero());
+    this.camera.setTarget(BABYLON.Vector3.Zero());
     // This attaches the camera to the canvas
-    camera.attachControl(this.canvas, true);
+    this.camera.attachControl(this.canvas, true);
     // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
     var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
 
@@ -97,7 +101,7 @@ class Game {
         return pickResult.pickedMesh === el.mesh
       });
       if (isOwnUnitHit) {
-        if(evt.shiftKey){
+        if (evt.shiftKey) {
           return; // the unit will select itself in the events manager
         }
 
@@ -179,8 +183,7 @@ class Game {
       unit.mesh.animations.push(animationBezierTorus);
       this.scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
 
-    }
-    ;
+    };
     //todo investigate queued commands
   }
 
