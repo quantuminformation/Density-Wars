@@ -5,6 +5,7 @@ import {IGameUnit} from "./gameUnits/IGameUnit";
 import Ground from "./Ground";
 import PickingInfo = BABYLON.PickingInfo;
 import Lobby from './hud/Lobby'
+import MathHelpers from './MathHelpers'
 import Vector3 = BABYLON.Vector3;
 import CenterOfMassMarker from "./gameUnits/CenterOfMassMarker";
 import GameOverlay from "./hud/GameOverlay";
@@ -26,17 +27,17 @@ class Game {
 
   canvas:HTMLCanvasElement;
   engine:BABYLON.Engine;
-  scene:BABYLON.Scene;
-  cores:Array<IGameUnit>;
-  camera:FreeCamera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this.scene);
+  private _scene:BABYLON.Scene;
+  private _selectedUnits:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
+  gameUnits:Array<IGameUnit>;
+  camera:FreeCamera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this._scene);
 
   //todo move to remote Users
   enemyUnits:Array<IGameUnit> = [];
 
   ground:Ground;
-  selection:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
   centerOfMass:CenterOfMassMarker;
-  gameOverlay:GameOverlay = new GameOverlay(this.scene,this.camera);
+  gameOverlay:GameOverlay = new GameOverlay(this._scene,this.camera);
 
   constructor() {
     self = this;
@@ -48,47 +49,47 @@ class Game {
 
     this.initScene();
 
-    this.cores = this.createInitialPlayerUnits();
-    var formation = Formations.circularGrouping(this.cores.length, new Vector3(0, 0, 0));
-    for (var i = 0; i < this.cores.length; i++) {
-      this.cores[i].mesh.position = formation[i];
+    this.gameUnits = this.createInitialPlayerUnits();
+    var formation = Formations.circularGrouping(this.gameUnits.length, new Vector3(0, 0, 0));
+    for (var i = 0; i < this.gameUnits.length; i++) {
+      this.gameUnits[i].mesh.position = formation[i];
     }
 
-    this.centerOfMass = new CenterOfMassMarker(this.scene, true);
-    this.centerOfMass.mesh.position = Formations.getCentroid(this.cores);
+    this.centerOfMass = new CenterOfMassMarker(this._scene, true);
+    this.centerOfMass.mesh.position = Formations.getCentroid(this.gameUnits);
 
     this.engine.runRenderLoop(() => {
-      this.centerOfMass.mesh.position = Formations.getCentroid(this.cores);
+      this.centerOfMass.mesh.position = Formations.getCentroid(this.gameUnits);
 
-      this.scene.render();
+      this._scene.render();
     });
     window.addEventListener("resize", function () {
       //todo some logic
       self.engine.resize();
     });
 
-    this.gameOverlay.showUnitsStatus(this.cores);
+    this.gameOverlay.showUnitsStatus(this.gameUnits);
 
   }
 
 
   initScene() {
-    this.scene = new BABYLON.Scene(this.engine);
+    this._scene = new BABYLON.Scene(this.engine);
 
     // This targets the camera to scene origin
     this.camera.setTarget(BABYLON.Vector3.Zero());
     // This attaches the camera to the canvas
     this.camera.attachControl(this.canvas, true);
     // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
+    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this._scene);
 
     // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.7;
     // Move the sphere upward 1/2 its height
     // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-    this.ground = new Ground(this.scene);
+    this.ground = new Ground(this._scene);
 
-    this.scene.onPointerDown = (evt, pickResult:PickingInfo) => {
+    this._scene.onPointerDown = (evt, pickResult:PickingInfo) => {
 
       //ignore if not click
       if (evt.button !== 0) {
@@ -96,7 +97,7 @@ class Game {
       }
 
       //deselction of of other units if todo add to selection (shift
-      var isOwnUnitHit = this.cores.some((el:IGameUnit)=> {
+      var isOwnUnitHit = this.gameUnits.some((el:IGameUnit)=> {
         return pickResult.pickedMesh === el.mesh
       });
       if (isOwnUnitHit) {
@@ -105,7 +106,7 @@ class Game {
         }
 
         //desselect others
-        this.cores.filter((el:IGameUnit)=> {
+        this.gameUnits.filter((el:IGameUnit)=> {
           return pickResult.pickedMesh !== el.mesh
         }).forEach((el:IGameUnit)=> {
           el.deselect();
@@ -116,10 +117,10 @@ class Game {
       //check for enemy targeted
       for (var i = 0; i < this.enemyUnits.length; i++) {
         if (pickResult.pickedMesh === this.enemyUnits[i].mesh) {
-          this.cores.filter((el:IGameUnit)=> {
+          this.gameUnits.filter((el:IGameUnit)=> {
             return el.isSelected;
           }).forEach((el:IGameUnit)=> {
-            el.weapon.fire(el, this.enemyUnits[i], this.scene)
+            el.weapon.fire(el, this.enemyUnits[i], this._scene)
           });
           return;
         }
@@ -129,7 +130,7 @@ class Game {
       if (pickResult.pickedMesh === self.ground.mesh) {
 
         //ground hit, now check if any units selected
-        if (self.cores.filter((item:IGameUnit) => {
+        if (self.gameUnits.filter((item:IGameUnit) => {
             return item.isSelected;
           }).length) {
           self.addMoveCommand(pickResult.pickedPoint);
@@ -140,8 +141,8 @@ class Game {
     };
 
     // Skybox
-    var skybox = BABYLON.Mesh.CreateBox("skyBox", 750.0, this.scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 750.0, this._scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this._scene);
     skyboxMaterial.backFaceCulling = false;
     skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
     skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
@@ -154,7 +155,7 @@ class Game {
 //todo from mouse/keyboard
   addMoveCommand(pickResult:Vector3) {
     console.log(pickResult);
-    var selectedUnits = this.cores.filter((unit:IGameUnit)=> {
+    var selectedUnits = this.gameUnits.filter((unit:IGameUnit)=> {
       return unit.isSelected;
     });
 
@@ -180,7 +181,7 @@ class Game {
       // var bezierEase = new BABYLON.BezierCurveEase(0.445, 0.05, 0.55, 0.95);
       //animationBezierTorus.setEasingFunction(bezierEase);
       unit.mesh.animations.push(animationBezierTorus);
-      this.scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
+      this._scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
 
     };
     //todo investigate queued commands
@@ -190,7 +191,7 @@ class Game {
     //var cores = Array<IGameUnit>;
     var cores = [];
     for (var i = 0; i < this.startingNumberOfCores; i++) {
-      var core = new Core(this.scene, true);
+      var core = new Core(this._scene, true);
       core.mesh.position.y = Common.defaultY;
       cores.push(core)
     }
@@ -198,12 +199,56 @@ class Game {
   }
 
   setUpDummyEnemys() {
-    var core = new Core(this.scene, false);
+    var core = new Core(this._scene, false);
     core.mesh.position = new Vector3(10, Common.defaultY, 10);
     this.enemyUnits.push(core);
-    var core2 = new Core(this.scene, false);
+    var core2 = new Core(this._scene, false);
     core2.mesh.position = new Vector3(11, Common.defaultY, 11);
     this.enemyUnits.push(core2);
+  }
+
+  // OnSelectionEnd implementation
+  OnSelectionEnd(x:number, y:number, w:number, h:number)  {
+
+    var area:Array<BABYLON.Vector3> = new Array<BABYLON.Vector3>(4);
+    var units:Array<BABYLON.AbstractMesh>;
+
+    // Clear current selection of selected units
+    this._selectedUnits.length = 0;
+
+    // In case when area is selected
+    if (w != 0 && h != 0) {
+      // Translate points to world coordinates
+      area[0] = this._scene.pick(x, y).pickedPoint;
+      area[1] = this._scene.pick(x + w, y).pickedPoint;
+      area[2] = this._scene.pick(x + w, y + h).pickedPoint;
+      area[3] = this._scene.pick(x, y + h).pickedPoint;
+
+      //todo use this
+      //this._selectedUnits = this._players[this._localPlayer].units.filter(
+
+        // Go through all units of your player and save them in an array
+      this._selectedUnits = this.gameUnits.filter(
+        (unit:IGameUnit) => {
+          return
+          //(<any>unit).mesh.type === ObjectType.UNIT &&
+            MathHelpers.isPointInPolyBabylon(area, unit.mesh.position); // helper is up
+        });
+
+      console.log(this._selectedUnits);
+    }
+    // Only one unit is selected
+    else {
+      var p = this._scene.pick(x, y);
+
+      if (!p.pickedMesh)
+        return;
+
+      if ((<any>p).type != ObjectType.UNIT)
+        return;
+
+      units.push(p.pickedMesh);
+    }
   }
 
 }
