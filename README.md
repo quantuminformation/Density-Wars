@@ -20,6 +20,7 @@ Roadmap
 1) Create basic gameplay
 2) Create Multiplayer peer to peer gaming
 3) Create leaderboard and ranking
+4) Create AI using machine learning 
 
 
 #For developers
