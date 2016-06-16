@@ -1,8 +1,8 @@
 import {IGameUnit} from "../gameUnits/IGameUnit";
-import BoundingInfo = BABYLON.BoundingInfo;
-import FreeCamera = BABYLON.FreeCamera;
 import Common from "../Common";
 import Config from "../Config";
+import BoundingInfo = BABYLON.BoundingInfo;
+import FreeCamera = BABYLON.FreeCamera;
 
 
 /**
@@ -13,9 +13,8 @@ export default class GameOverlay {
 
   private _scene:BABYLON.Scene;
   private _clicked = false;
-  private _canvas2D:HTMLCanvasElement;
-  private _context:CanvasRenderingContext2D =this._canvas2D.getContext('2d');
-
+  private _canvas2D:HTMLCanvasElement = <HTMLCanvasElement> document.getElementById("gameOverlay")
+  private _context:CanvasRenderingContext2D = this._canvas2D.getContext('2d');
 
   private _startPos;
   private _endPos;
@@ -24,21 +23,22 @@ export default class GameOverlay {
   private _onPointerMove:(evt:PointerEvent) => void;
   private _onPointerUp:(evt:PointerEvent) => void;
 
-  private _selectedUnits : Array<IGameUnit>;
+  private _selectedUnits:Array<IGameUnit>;
 
   public OnSelectionEnd:(x:number, y:number,
                          w:number, h:number) => void = undefined;
-  
+
   constructor(scene:BABYLON.Scene, public camera:FreeCamera) {
     this._scene = scene;
     this.createEvents();
   }
-  
-  private createEvents() {
-    this._onPointerDown = (evt:PointerEvent) => {
-      if (evt.button != Common.MOUSE.LEFT)
-        return;
 
+  createEvents() {
+    this._onPointerDown = (evt:PointerEvent) => {
+      if (evt.button != Common.MOUSE.LEFT) {
+        return;
+      }
+      console.log("pointer down")
       // window.onmousemove = this.OnPointerMove;
       window.addEventListener("mousemove", this._onPointerMove);
       this._startPos = {x: this._scene.pointerX, y: this._scene.pointerY};
@@ -46,6 +46,7 @@ export default class GameOverlay {
 
     this._onPointerMove = (evt:PointerEvent) => {
       this._endPos = {x: this._scene.pointerX, y: this._scene.pointerY};
+      console.log("pointer move")
 
       // Calculate positions
       var x = Math.min(this._startPos.x, this._endPos.x);
@@ -70,9 +71,11 @@ export default class GameOverlay {
       if (evt.button != Common.MOUSE.LEFT) {
         return;
       }
+      console.log("pointer up")
+
 
       this._context.clearRect(0, 0, this._canvas2D.width, this._canvas2D.height);
-      window.removeEventListener("mousemoe", this._onPointerMove);
+      window.removeEventListener("mousemove", this._onPointerMove);
 
       if (this.OnSelectionEnd != undefined) {
         var x = Math.min(this._startPos.x, this._endPos.x);
@@ -89,11 +92,11 @@ export default class GameOverlay {
     window.addEventListener("mousedown", this._onPointerDown);
     window.addEventListener("mouseup", this._onPointerUp);
   }
-  
+
   /**
    * this show health and stuff on 2d canvas
    * @param units
-     */
+   */
   showUnitsStatus(units:Array<IGameUnit>) {
     units.forEach((unit:IGameUnit)=> {
       //var tm = camera

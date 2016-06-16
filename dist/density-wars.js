@@ -55,9 +55,12 @@
 	var Formations_ts_1 = __webpack_require__(6);
 	var Common_1 = __webpack_require__(3);
 	var Ground_1 = __webpack_require__(7);
+	var Lobby_1 = __webpack_require__(8);
+	var MathHelpers_1 = __webpack_require__(10);
+	var CenterOfMassMarker_1 = __webpack_require__(11);
+	var GameOverlay_1 = __webpack_require__(12);
 	var Vector3 = BABYLON.Vector3;
-	var CenterOfMassMarker_1 = __webpack_require__(8);
-	__webpack_require__(9);
+	__webpack_require__(14);
 	//todo I can't figure out a way to import with webpack so I load in index.html
 	//import BABYLON from 'babylonjs'
 	var self; //todo not sure about this
@@ -65,52 +68,54 @@
 	    function Game() {
 	        var _this = this;
 	        this.startingNumberOfCores = 6;
+	        this.lobby = new Lobby_1.default();
+	        this.engine = new BABYLON.Engine(document.getElementById("glcanvas"), true);
+	        this._scene = new BABYLON.Scene(this.engine);
+	        this.camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this._scene);
 	        //todo move to remote Users
 	        this.enemyUnits = [];
+	        this.gameOverlay = new GameOverlay_1.default(this._scene, this.camera);
 	        self = this;
-	        // Load BABYLON 3D engine
-	        this.engine = new BABYLON.Engine(document.getElementById("glcanvas"), true);
 	        this.canvas = this.engine.getRenderingCanvas();
 	        this.initScene();
-	        this.cores = this.createInitialPlayerUnits();
-	        var formation = Formations_ts_1.default.circularGrouping(this.cores.length, new Vector3(0, 0, 0));
-	        for (var i = 0; i < this.cores.length; i++) {
-	            this.cores[i].mesh.position = formation[i];
+	        this.gameUnits = this.createInitialPlayerUnits();
+	        var formation = Formations_ts_1.default.circularGrouping(this.gameUnits.length, new Vector3(0, 0, 0));
+	        for (var i = 0; i < this.gameUnits.length; i++) {
+	            this.gameUnits[i].mesh.position = formation[i];
 	        }
-	        this.centerOfMass = new CenterOfMassMarker_1.default(this.scene, true);
-	        this.centerOfMass.mesh.position = Formations_ts_1.default.getCentroid(this.cores);
+	        this.camera.detachControl(this.canvas);
+	        this.centerOfMass = new CenterOfMassMarker_1.default(this._scene, true);
+	        this.centerOfMass.mesh.position = Formations_ts_1.default.getCentroid(this.gameUnits);
 	        this.engine.runRenderLoop(function () {
-	            _this.centerOfMass.mesh.position = Formations_ts_1.default.getCentroid(_this.cores);
-	            _this.scene.render();
+	            _this.centerOfMass.mesh.position = Formations_ts_1.default.getCentroid(_this.gameUnits);
+	            _this._scene.render();
 	        });
 	        window.addEventListener("resize", function () {
 	            //todo some logic
 	            self.engine.resize();
 	        });
+	        this.gameOverlay.showUnitsStatus(this.gameUnits);
 	    }
 	    Game.prototype.initScene = function () {
 	        var _this = this;
-	        this.scene = new BABYLON.Scene(this.engine);
-	        // This creates and positions a free camera (non-mesh)
-	        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this.scene);
 	        // This targets the camera to scene origin
-	        camera.setTarget(BABYLON.Vector3.Zero());
+	        this.camera.setTarget(BABYLON.Vector3.Zero());
 	        // This attaches the camera to the canvas
-	        camera.attachControl(this.canvas, true);
+	        this.camera.attachControl(this.canvas, true);
 	        // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-	        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
+	        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this._scene);
 	        // Default intensity is 1. Let's dim the light a small amount
 	        light.intensity = 0.7;
 	        // Move the sphere upward 1/2 its height
 	        // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-	        this.ground = new Ground_1.default(this.scene);
-	        this.scene.onPointerDown = function (evt, pickResult) {
+	        this.ground = new Ground_1.default(this._scene);
+	        this._scene.onPointerDown = function (evt, pickResult) {
 	            //ignore if not click
 	            if (evt.button !== 0) {
 	                return;
 	            }
 	            //deselction of of other units if todo add to selection (shift
-	            var isOwnUnitHit = _this.cores.some(function (el) {
+	            var isOwnUnitHit = _this.gameUnits.some(function (el) {
 	                return pickResult.pickedMesh === el.mesh;
 	            });
 	            if (isOwnUnitHit) {
@@ -118,7 +123,7 @@
 	                    return; // the unit will select itself in the events manager
 	                }
 	                //desselect others
-	                _this.cores.filter(function (el) {
+	                _this.gameUnits.filter(function (el) {
 	                    return pickResult.pickedMesh !== el.mesh;
 	                }).forEach(function (el) {
 	                    el.deselect();
@@ -128,10 +133,10 @@
 	            //check for enemy targeted
 	            for (var i = 0; i < _this.enemyUnits.length; i++) {
 	                if (pickResult.pickedMesh === _this.enemyUnits[i].mesh) {
-	                    _this.cores.filter(function (el) {
+	                    _this.gameUnits.filter(function (el) {
 	                        return el.isSelected;
 	                    }).forEach(function (el) {
-	                        el.weapon.fire(el, _this.enemyUnits[i], _this.scene);
+	                        el.weapon.fire(el, _this.enemyUnits[i], _this._scene);
 	                    });
 	                    return;
 	                }
@@ -139,7 +144,7 @@
 	            //check for ground hit
 	            if (pickResult.pickedMesh === self.ground.mesh) {
 	                //ground hit, now check if any units selected
-	                if (self.cores.filter(function (item) {
+	                if (self.gameUnits.filter(function (item) {
 	                    return item.isSelected;
 	                }).length) {
 	                    self.addMoveCommand(pickResult.pickedPoint);
@@ -149,8 +154,8 @@
 	            }
 	        };
 	        // Skybox
-	        var skybox = BABYLON.Mesh.CreateBox("skyBox", 750.0, this.scene);
-	        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+	        var skybox = BABYLON.Mesh.CreateBox("skyBox", 750.0, this._scene);
+	        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this._scene);
 	        skyboxMaterial.backFaceCulling = false;
 	        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 	        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
@@ -161,7 +166,7 @@
 	    //todo from mouse/keyboard
 	    Game.prototype.addMoveCommand = function (pickResult) {
 	        console.log(pickResult);
-	        var selectedUnits = this.cores.filter(function (unit) {
+	        var selectedUnits = this.gameUnits.filter(function (unit) {
 	            return unit.isSelected;
 	        });
 	        var formation = Formations_ts_1.default.circularGrouping(selectedUnits.length, pickResult);
@@ -182,7 +187,7 @@
 	            // var bezierEase = new BABYLON.BezierCurveEase(0.445, 0.05, 0.55, 0.95);
 	            //animationBezierTorus.setEasingFunction(bezierEase);
 	            unit.mesh.animations.push(animationBezierTorus);
-	            this.scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
+	            this._scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
 	        }
 	        ;
 	        //todo investigate queued commands
@@ -191,19 +196,51 @@
 	        //var cores = Array<IGameUnit>;
 	        var cores = [];
 	        for (var i = 0; i < this.startingNumberOfCores; i++) {
-	            var core = new Core_1.default(this.scene, true);
+	            var core = new Core_1.default(this._scene, true);
 	            core.mesh.position.y = Common_1.default.defaultY;
 	            cores.push(core);
 	        }
 	        return cores;
 	    };
 	    Game.prototype.setUpDummyEnemys = function () {
-	        var core = new Core_1.default(this.scene, false);
+	        var core = new Core_1.default(this._scene, false);
 	        core.mesh.position = new Vector3(10, Common_1.default.defaultY, 10);
 	        this.enemyUnits.push(core);
-	        var core2 = new Core_1.default(this.scene, false);
+	        var core2 = new Core_1.default(this._scene, false);
 	        core2.mesh.position = new Vector3(11, Common_1.default.defaultY, 11);
 	        this.enemyUnits.push(core2);
+	    };
+	    // OnSelectionEnd implementation
+	    Game.prototype.OnSelectionEnd = function (x, y, w, h) {
+	        var area = new Array(4);
+	        var units;
+	        // Clear current selection of selected units
+	        this._selectedUnits.length = 0;
+	        // In case when area is selected
+	        if (w != 0 && h != 0) {
+	            // Translate points to world coordinates
+	            area[0] = this._scene.pick(x, y).pickedPoint;
+	            area[1] = this._scene.pick(x + w, y).pickedPoint;
+	            area[2] = this._scene.pick(x + w, y + h).pickedPoint;
+	            area[3] = this._scene.pick(x, y + h).pickedPoint;
+	            //todo use this
+	            //this._selectedUnits = this._players[this._localPlayer].units.filter(
+	            // Go through all units of your player and save them in an array
+	            this._selectedUnits = this.gameUnits.filter(function (unit) {
+	                //(<any>unit).mesh.type === ObjectType.UNIT &&
+	                return MathHelpers_1.default.isPointInPolyBabylon(area, unit.mesh.position); // helper is up
+	            });
+	            console.log(this._selectedUnits);
+	        }
+	        else {
+	            var p = this._scene.pick(x, y);
+	            if (!p.pickedMesh)
+	                return;
+	            //todo check
+	            //if ((<any>p).type != ObjectType.UNIT)
+	            // return;
+	            units.push(p.pickedMesh);
+	        }
 	    };
 	    return Game;
 	})();
@@ -294,47 +331,76 @@
 /* 3 */
 /***/ function(module, exports) {
 
-	/**
-	 * Stuff that's shared among a lot of things in this game
-	 */
-	var Common = (function () {
-	    function Common() {
-	    }
-	    Common.defaultY = 1; // presently all the objects are on the same horizontal plane
-	    Common.MEDIUM_UNIT_SIZE = 1;
-	    Common.MEDIUM_SIZE_MAP = 80;
-	    Common.MEDIUM_SIZE_MAP_SUBDIVISIONS = 40;
-	    Common.MEDIUM_SPEED = 3;
-	    Common.ANIMATIONS_FPS = 30; //this is distance units per second
-	    return Common;
-	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = Common;
-	exports.KEYS = {
-	    BACKSPACE: 8,
-	    TAB: 9,
-	    RETURN: 13,
-	    ESC: 27,
-	    SPACE: 32,
-	    LEFT: 37,
-	    UP: 38,
-	    RIGHT: 39,
-	    DOWN: 40,
-	    DELETE: 46,
-	    HOME: 36,
-	    END: 35,
-	    PAGEUP: 33,
-	    PAGEDOWN: 34,
-	    INSERT: 45,
-	    ZERO: 48,
-	    ONE: 49,
-	    TWO: 50,
-	    A: 65,
-	    L: 76,
-	    P: 80,
-	    Q: 81,
-	    TILDA: 192
+	exports.default = {
+	    defaultY: 1,
+	    MEDIUM_UNIT_SIZE: 1,
+	    MEDIUM_SIZE_MAP: 80,
+	    MEDIUM_SIZE_MAP_SUBDIVISIONS: 40,
+	    MEDIUM_SPEED: 3,
+	    ANIMATIONS_FPS: 30,
+	    MOUSE: {
+	        LEFT: 1
+	    },
+	    KEYS: {
+	        BACKSPACE: 8,
+	        TAB: 9,
+	        RETURN: 13,
+	        ESC: 27,
+	        SPACE: 32,
+	        LEFT: 37,
+	        UP: 38,
+	        RIGHT: 39,
+	        DOWN: 40,
+	        DELETE: 46,
+	        HOME: 36,
+	        END: 35,
+	        PAGEUP: 33,
+	        PAGEDOWN: 34,
+	        INSERT: 45,
+	        ZERO: 48,
+	        ONE: 49,
+	        TWO: 50,
+	        A: 65,
+	        L: 76,
+	        P: 80,
+	        Q: 81,
+	        TILDA: 192
+	    }
 	};
+	/*
+	 class KEYS {
+	 BACKSPACE  8
+	 TAB  9
+	 RETURN  13
+	 ESC  27
+	 SPACE  32
+	 LEFT  37
+	 UP  38
+	 RIGHT  39
+	 DOWN  40
+	 DELETE  46
+	 HOME  36
+	 END  35
+	 PAGEUP  33
+	 PAGEDOWN  34
+	 INSERT  45
+	 ZERO  48
+	 ONE  49
+	 TWO  50
+	 A  65
+	 L  76
+	 P  80
+	 Q  81
+	 TILDA  192
+	 }
+	 */
+	/*
+	
+	 class MOUSE {
+	 LEFT  1
+	 }
+	 */
 
 
 /***/ },
@@ -512,6 +578,77 @@
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var RemotePlayer_ts_1 = __webpack_require__(9);
+	/**
+	 * Displays the Players info
+	 */
+	var Lobby = (function () {
+	    function Lobby() {
+	        this.remoteUsers = []; //other players in the game, start with just 1 for now for simplicity
+	        this.element = document.getElementById('lobby');
+	        //stub
+	        this.remoteUsers.push(new RemotePlayer_ts_1.default('Nikos'));
+	        this.remoteUsers.push(new RemotePlayer_ts_1.default('Apo'));
+	        this.render();
+	    }
+	    /**
+	     * Renders the UI
+	     */
+	    Lobby.prototype.render = function () {
+	        this.element.innerHTML =
+	            this.remoteUsers.map(function (player) {
+	                return '<player>${player.name}</player>';
+	            }).join();
+	    };
+	    return Lobby;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = Lobby;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	/**
+	 * Data for a competing player
+	 */
+	var RemotePlayer = (function () {
+	    function RemotePlayer(name) {
+	        this.name = name;
+	    }
+	    return RemotePlayer;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = RemotePlayer;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	var MathHelpers = (function () {
+	    function MathHelpers() {
+	    }
+	    // A MathHelper for bellow, can be done faster via, I hadn't had time to implement it yet
+	    // http://math.stackexchange.com/questions/190111/how-to-check-if-a-point-is-inside-a-rectangle
+	    MathHelpers.isPointInPolyBabylon = function (poly, pt) {
+	        for (var c = false, i = -1, l = poly.length, j = l - 1; ++i < l; j = i)
+	            ((poly[i].z <= pt.z && pt.z < poly[j].z) || (poly[j].z <= pt.z && pt.z < poly[i].z))
+	                && (pt.x < (poly[j].x - poly[i].x) * (pt.z - poly[i].z) / (poly[j].z - poly[i].z) + poly[i].x)
+	                && (c = !c);
+	        return c;
+	    };
+	    return MathHelpers;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = MathHelpers;
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var Common_1 = __webpack_require__(3);
 	/**
 	 * CenterOfMassMarker
@@ -547,23 +684,135 @@
 
 
 /***/ },
-/* 9 */
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Common_1 = __webpack_require__(3);
+	var Config_1 = __webpack_require__(13);
+	/**
+	 * Allows drawing over to select units and shows health points of units. Also shows selection rectangle when user
+	 * clicks and drags over units.
+	 */
+	var GameOverlay = (function () {
+	    function GameOverlay(scene, camera) {
+	        this.camera = camera;
+	        this._clicked = false;
+	        this._canvas2D = document.getElementById("gameOverlay");
+	        this._context = this._canvas2D.getContext('2d');
+	        this.OnSelectionEnd = undefined;
+	        this._scene = scene;
+	        this.createEvents();
+	    }
+	    GameOverlay.prototype.createEvents = function () {
+	        var _this = this;
+	        this._onPointerDown = function (evt) {
+	            if (evt.button != Common_1.default.MOUSE.LEFT) {
+	                return;
+	            }
+	            console.log("pointer down");
+	            // window.onmousemove = this.OnPointerMove;
+	            window.addEventListener("mousemove", _this._onPointerMove);
+	            _this._startPos = { x: _this._scene.pointerX, y: _this._scene.pointerY };
+	        };
+	        this._onPointerMove = function (evt) {
+	            _this._endPos = { x: _this._scene.pointerX, y: _this._scene.pointerY };
+	            console.log("pointer move");
+	            // Calculate positions
+	            var x = Math.min(_this._startPos.x, _this._endPos.x);
+	            var y = Math.min(_this._startPos.y, _this._endPos.y);
+	            var w = Math.abs(_this._startPos.x - _this._endPos.x);
+	            var h = Math.abs(_this._startPos.y - _this._endPos.y);
+	            // Draw rect
+	            _this._context.clearRect(0, 0, _this._canvas2D.width, _this._canvas2D.height);
+	            _this._context.beginPath();
+	            if (Config_1.default.SELECTION_CONFIG.Stroke)
+	                _this._context.strokeRect(x, y, w, h);
+	            if (Config_1.default.SELECTION_CONFIG.Fill)
+	                _this._context.fillRect(x, y, w, h);
+	            _this._context.stroke();
+	        };
+	        this._onPointerUp = function (evt) {
+	            if (evt.button != Common_1.default.MOUSE.LEFT) {
+	                return;
+	            }
+	            console.log("pointer up");
+	            _this._context.clearRect(0, 0, _this._canvas2D.width, _this._canvas2D.height);
+	            window.removeEventListener("mousemove", _this._onPointerMove);
+	            if (_this.OnSelectionEnd != undefined) {
+	                var x = Math.min(_this._startPos.x, _this._endPos.x);
+	                var y = Math.min(_this._startPos.y, _this._endPos.y);
+	                var w = Math.abs(_this._startPos.x - _this._endPos.x);
+	                var h = Math.abs(_this._startPos.y - _this._endPos.y);
+	                _this.OnSelectionEnd(x, y, w, h);
+	                h = 0;
+	                w = 0;
+	            }
+	        };
+	        window.addEventListener("mousedown", this._onPointerDown);
+	        window.addEventListener("mouseup", this._onPointerUp);
+	    };
+	    /**
+	     * this show health and stuff on 2d canvas
+	     * @param units
+	     */
+	    GameOverlay.prototype.showUnitsStatus = function (units) {
+	        units.forEach(function (unit) {
+	            //var tm = camera
+	            //var info:BoundingInfo = unit.mesh.getpic;
+	            // this.context2D.fillText(info.toString(),info.x)
+	        });
+	    };
+	    return GameOverlay;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = GameOverlay;
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	/**
+	 * config stuff
+	 */
+	var Config = (function () {
+	    function Config() {
+	    }
+	    return Config;
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = Config;
+	var SelectionConfig = (function () {
+	    function SelectionConfig() {
+	        this.Stroke = true;
+	        this.StrokeWidth = 2;
+	        this.StrokeColor = "rgba(0; 255; 0; 0.5)";
+	        this.Shadow = true;
+	        this.Fill = true;
+	        this.FillColor = "rgba(0; 255; 0; 0.15)";
+	    }
+	    return SelectionConfig;
+	})();
+
+
+/***/ },
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(10);
+	var content = __webpack_require__(15);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(12)(content, {});
+	var update = __webpack_require__(17)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
 		// When the styles change, update the <style> tags
 		if(!content.locals) {
-			module.hot.accept("!!./../node_modules/css-loader/index.js!./../node_modules/stylus-loader/index.js!./main.styl", function() {
-				var newContent = require("!!./../node_modules/css-loader/index.js!./../node_modules/stylus-loader/index.js!./main.styl");
+			module.hot.accept("!!./../node_modules/css-loader/index.js!./../node_modules/stylus-loader/index.js!./index.styl", function() {
+				var newContent = require("!!./../node_modules/css-loader/index.js!./../node_modules/stylus-loader/index.js!./index.styl");
 				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 				update(newContent);
 			});
@@ -573,21 +822,21 @@
 	}
 
 /***/ },
-/* 10 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(11)();
+	exports = module.exports = __webpack_require__(16)();
 	// imports
 	
 	
 	// module
-	exports.push([module.id, ".players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n.players {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n.players .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n#guide {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  top: 20px;\n  left: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#guide h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#guide h2 {\n  font-size: 13px;\n}\n#guide p {\n  font-size: 10px;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n#canvas2D {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  z-index: 1;\n}\n", ""]);
+	exports.push([module.id, "#lobby {\n  position: absolute;\n  left: calc(50% - 152px);\n  bottom: 16px;\n  width: 304px;\n  height: 42px;\n  z-index: 4;\n}\n#lobby .player {\n  background-color: #44a9f1;\n  float: left;\n  width: 64px;\n  height: 42px;\n  margin-right: 16px;\n}\n#info {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  right: 20px;\n  bottom: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#info h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#info h2 {\n  font-size: 11px;\n}\n#info p {\n  font-size: 8px;\n}\n#guide {\n  background-color: rgba(30,30,30,0.3);\n  color: rgba(255,255,255,0.5);\n  position: absolute;\n  top: 20px;\n  left: 20px;\n  width: 200px;\n  height: 140px;\n  z-index: 4;\n  padding: 10px;\n}\n#guide h1 {\n  font-size: 13px;\n  text-align: center;\n}\n#guide h2 {\n  font-size: 13px;\n}\n#guide p {\n  font-size: 10px;\n}\n#gameOverlay {\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  position: absolute;\n  top: 0;\n  left: 0;\n  touch-action: none;\n  pointer-events: none;\n}\nbody,\nhtml {\n  background-color: #000;\n  color: #fff;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  overflow: hidden;\n}\n#glcanvas {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
 	
 	// exports
 
 
 /***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports) {
 
 	/*
@@ -643,7 +892,7 @@
 
 
 /***/ },
-/* 12 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -859,7 +1108,6 @@
 	function applyToTag(styleElement, obj) {
 		var css = obj.css;
 		var media = obj.media;
-		var sourceMap = obj.sourceMap;
 	
 		if(media) {
 			styleElement.setAttribute("media", media)
@@ -877,7 +1125,6 @@
 	
 	function updateLink(linkElement, obj) {
 		var css = obj.css;
-		var media = obj.media;
 		var sourceMap = obj.sourceMap;
 	
 		if(sourceMap) {

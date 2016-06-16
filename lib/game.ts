@@ -1,14 +1,14 @@
-import Core from "./gameUnits/Core"
-import Formations from "./utils/Formations.ts"
-import Common from "./Common"
+import Core from "./gameUnits/Core";
+import Formations from "./utils/Formations.ts";
+import Common from "./Common";
 import {IGameUnit} from "./gameUnits/IGameUnit";
 import Ground from "./Ground";
-import PickingInfo = BABYLON.PickingInfo;
-import Lobby from './hud/Lobby'
-import MathHelpers from './MathHelpers'
-import Vector3 = BABYLON.Vector3;
+import Lobby from "./hud/Lobby";
+import MathHelpers from "./MathHelpers";
 import CenterOfMassMarker from "./gameUnits/CenterOfMassMarker";
 import GameOverlay from "./hud/GameOverlay";
+import PickingInfo = BABYLON.PickingInfo;
+import Vector3 = BABYLON.Vector3;
 import FreeCamera = BABYLON.FreeCamera;
 
 
@@ -26,24 +26,23 @@ class Game {
   lobby:Lobby = new Lobby();
 
   canvas:HTMLCanvasElement;
-  engine:BABYLON.Engine;
-  private _scene:BABYLON.Scene;
+  engine:BABYLON.Engine = new BABYLON.Engine(<HTMLCanvasElement> document.getElementById("glcanvas"), true);
+  private _scene:BABYLON.Scene = new BABYLON.Scene(this.engine);
   private _selectedUnits:Array<IGameUnit>; //this is what the user has selected, can be one ore more gameUnits
   gameUnits:Array<IGameUnit>;
   camera:FreeCamera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 15, -40), this._scene);
+
 
   //todo move to remote Users
   enemyUnits:Array<IGameUnit> = [];
 
   ground:Ground;
   centerOfMass:CenterOfMassMarker;
-  gameOverlay:GameOverlay = new GameOverlay(this._scene,this.camera);
+  gameOverlay:GameOverlay = new GameOverlay(this._scene, this.camera);
 
   constructor() {
     self = this;
 
-    // Load BABYLON 3D engine
-    this.engine = new BABYLON.Engine(<HTMLCanvasElement> document.getElementById("glcanvas"), true);
 
     this.canvas = this.engine.getRenderingCanvas();
 
@@ -54,6 +53,7 @@ class Game {
     for (var i = 0; i < this.gameUnits.length; i++) {
       this.gameUnits[i].mesh.position = formation[i];
     }
+    this.camera.detachControl(this.canvas)
 
     this.centerOfMass = new CenterOfMassMarker(this._scene, true);
     this.centerOfMass.mesh.position = Formations.getCentroid(this.gameUnits);
@@ -74,7 +74,6 @@ class Game {
 
 
   initScene() {
-    this._scene = new BABYLON.Scene(this.engine);
 
     // This targets the camera to scene origin
     this.camera.setTarget(BABYLON.Vector3.Zero());
@@ -183,7 +182,8 @@ class Game {
       unit.mesh.animations.push(animationBezierTorus);
       this._scene.beginAnimation(unit.mesh, 0, framesNeeded, true);
 
-    };
+    }
+    ;
     //todo investigate queued commands
   }
 
@@ -208,7 +208,7 @@ class Game {
   }
 
   // OnSelectionEnd implementation
-  OnSelectionEnd(x:number, y:number, w:number, h:number)  {
+  OnSelectionEnd(x:number, y:number, w:number, h:number) {
 
     var area:Array<BABYLON.Vector3> = new Array<BABYLON.Vector3>(4);
     var units:Array<BABYLON.AbstractMesh>;
@@ -227,12 +227,11 @@ class Game {
       //todo use this
       //this._selectedUnits = this._players[this._localPlayer].units.filter(
 
-        // Go through all units of your player and save them in an array
+      // Go through all units of your player and save them in an array
       this._selectedUnits = this.gameUnits.filter(
         (unit:IGameUnit) => {
-          return
           //(<any>unit).mesh.type === ObjectType.UNIT &&
-            MathHelpers.isPointInPolyBabylon(area, unit.mesh.position); // helper is up
+          return MathHelpers.isPointInPolyBabylon(area, unit.mesh.position); // helper is up
         });
 
       console.log(this._selectedUnits);
@@ -244,8 +243,9 @@ class Game {
       if (!p.pickedMesh)
         return;
 
-      if ((<any>p).type != ObjectType.UNIT)
-        return;
+      //todo check
+      //if ((<any>p).type != ObjectType.UNIT)
+      // return;
 
       units.push(p.pickedMesh);
     }
