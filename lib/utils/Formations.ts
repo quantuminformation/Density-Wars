@@ -1,4 +1,4 @@
-import Common from "../Common"
+import {common} from "../Common"
 import {IGameUnit} from "../gameUnits/IGameUnit";
 import Vector3 = BABYLON.Vector3;
 
@@ -26,7 +26,8 @@ export default class Formations {
     for (var i = 0; i < amount; i++) {
       var angleDeg = i * (360 / amount);
       var angleRad = (angleDeg / 360) * 2 * Math.PI;
-      var customVector = new BABYLON.Vector3(-Math.cos(angleRad) * spacing, Common.defaultY * spacing, -Math.sin(angleRad) * spacing);
+      var customVector = new BABYLON.Vector3(-Math.cos(angleRad) * spacing,
+        common.defaultY * spacing, -Math.sin(angleRad) * spacing);
       arr.push(center.add(customVector));
     }
 
@@ -48,7 +49,7 @@ export default class Formations {
       totalZ += unit.mesh.position.z * unit.mass
     })
 
-    return new Vector3 (totalX / totalMass,Common.defaultY, totalZ / totalMass);
+    return new Vector3 (totalX / totalMass,common.defaultY, totalZ / totalMass);
   }
   static Distance2D(from:Vector3,to:Vector3) {
     return Math.sqrt(Math.pow(from.x - to.x, 2) + Math.pow(from.z -to .z, 2));

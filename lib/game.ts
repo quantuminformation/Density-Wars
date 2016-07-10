@@ -1,6 +1,6 @@
 import Core from "./gameUnits/Core";
 import Formations from "./utils/Formations.ts";
-import Common from "./Common";
+import {common} from "./Common";
 import {IGameUnit} from "./gameUnits/IGameUnit";
 import Ground from "./Ground";
 import Lobby from "./hud/Lobby";
@@ -164,11 +164,15 @@ class Game {
       var unit = selectedUnits[i];
 
       //pythagoras
-      var distance = Math.sqrt(Math.pow(pickResult.x - unit.mesh.position.x, 2) + Math.pow(pickResult.z - unit.mesh.position.z, 2));
-      var framesNeeded = Math.round((distance / Common.MEDIUM_SPEED) * Common.ANIMATIONS_FPS);
+      var distance = Math.sqrt(Math.pow(pickResult.x - unit.mesh.position.x, 2)
+        + Math.pow(pickResult.z - unit.mesh.position.z, 2));
+      var framesNeeded = Math.round((distance / common.MEDIUM_SPEED) * common.ANIMATIONS_FPS);
       console.log('dist: ' + distance + ' frames' + framesNeeded);
 
-      var animationBezierTorus = new BABYLON.Animation("animationCore", "position", Common.ANIMATIONS_FPS, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+      var animationBezierTorus = new BABYLON.Animation("animationCore", "position",
+        common.ANIMATIONS_FPS,
+        BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+        BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
       var keysBezierTorus = [];
       keysBezierTorus.push({frame: 0, value: unit.mesh.position});
 
@@ -192,7 +196,7 @@ class Game {
     var cores = [];
     for (var i = 0; i < this.startingNumberOfCores; i++) {
       var core = new Core(this._scene, true);
-      core.mesh.position.y = Common.defaultY;
+      core.mesh.position.y = common.defaultY;
       cores.push(core)
     }
     return cores;
@@ -200,10 +204,10 @@ class Game {
 
   setUpDummyEnemys() {
     var core = new Core(this._scene, false);
-    core.mesh.position = new Vector3(10, Common.defaultY, 10);
+    core.mesh.position = new Vector3(10, common.defaultY, 10);
     this.enemyUnits.push(core);
     var core2 = new Core(this._scene, false);
-    core2.mesh.position = new Vector3(11, Common.defaultY, 11);
+    core2.mesh.position = new Vector3(11, common.defaultY, 11);
     this.enemyUnits.push(core2);
   }
 

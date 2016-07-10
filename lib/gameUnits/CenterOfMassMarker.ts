@@ -1,5 +1,5 @@
 import UnitCommand from '../utils/UnitCommand';
-import Common from "../Common";
+import {common} from "../Common";
 import {IGameUnit} from "../gameUnits/IGameUnit";
 import ActionEvent = BABYLON.ActionEvent;
 import Laser from "../weapons/Laser";
@@ -26,7 +26,9 @@ export default class CenterOfMassMarker {
    */
   constructor(scene, isOwn) {
 
-    this.mesh = BABYLON.Mesh.CreateBox("sphere1", {width: Common.MEDIUM_UNIT_SIZE,height: Common.MEDIUM_UNIT_SIZE}, scene);
+    this.mesh = BABYLON.Mesh.CreateBox("sphere1", {
+      width: common.MEDIUM_UNIT_SIZE,height: common.MEDIUM_UNIT_SIZE
+    }, scene);
     this.isOwn = isOwn;
 
     var material = new BABYLON.StandardMaterial("green", scene);

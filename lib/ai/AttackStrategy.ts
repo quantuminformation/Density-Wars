@@ -1,4 +1,4 @@
-import Common from "./Common";
+import {common} from "../Common";
 /**
  *
  * AttackStrategy

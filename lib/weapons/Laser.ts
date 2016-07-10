@@ -2,7 +2,7 @@ import {IGameUnit} from "../gameUnits/IGameUnit";
 import WeaponModifier from "../modifiers/WeaponModifier";
 import StandardMaterial = BABYLON.StandardMaterial;
 import Formations from "../utils/Formations";
-import Common from "../Common";
+import {common} from "../Common";
 import {IWeapon} from "./IWeapon";
 
 /**
@@ -62,7 +62,7 @@ export default class Laser implements IWeapon {
     material.emissiveColor = BABYLON.Color3.Green();
     mesh.material = material;
 
-    var animationFadeOut = new BABYLON.Animation("animationCore", "position", Common.ANIMATIONS_FPS, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+    var animationFadeOut = new BABYLON.Animation("animationCore", "position", common.ANIMATIONS_FPS, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 /*    var keys = [];
     keys.push({frame: 0, value: 1});
 

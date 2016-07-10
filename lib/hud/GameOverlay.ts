@@ -1,5 +1,5 @@
 import {IGameUnit} from "../gameUnits/IGameUnit";
-import Common from "../Common";
+import {common} from "../Common";
 import Config from "../Config";
 import BoundingInfo = BABYLON.BoundingInfo;
 import FreeCamera = BABYLON.FreeCamera;
@@ -35,7 +35,7 @@ export default class GameOverlay {
 
   createEvents() {
     this._onPointerDown = (evt:PointerEvent) => {
-      if (evt.button != Common.MOUSE.LEFT) {
+      if (evt.button != common.MOUSE.LEFT) {
         return;
       }
       console.log("pointer down")
@@ -68,7 +68,7 @@ export default class GameOverlay {
     }
 
     this._onPointerUp = (evt:PointerEvent) => {
-      if (evt.button != Common.MOUSE.LEFT) {
+      if (evt.button != common.MOUSE.LEFT) {
         return;
       }
       console.log("pointer up")

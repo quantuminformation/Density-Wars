@@ -1,7 +1,7 @@
 /**
  * Stuff that's shared among a lot of things in this game
  */
-export default {
+export const common = {
   defaultY: 1,// presently all the objects are on the same horizontal plane
 
   MEDIUM_UNIT_SIZE: 1,

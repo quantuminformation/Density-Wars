@@ -1,4 +1,4 @@
-import Common from "./Common";
+import {common} from "./Common";
 /**
  *
  * The ground (actually a grid in space) that the game sits upon
@@ -12,11 +12,11 @@ export default class Ground {
   constructor(scene) {
 
     //Creation of a plane with a texture
-    this.mesh = BABYLON.Mesh.CreatePlane("ground", Common.MEDIUM_SIZE_MAP, scene);
+    this.mesh = BABYLON.Mesh.CreatePlane("ground", common.MEDIUM_SIZE_MAP, scene);
     var matGround = new BABYLON.StandardMaterial("matGround", scene);
     matGround.diffuseTexture = new BABYLON.Texture("lib/assets/img/background.png", scene);
-    matGround.diffuseTexture.uScale = Common.MEDIUM_SIZE_MAP_SUBDIVISIONS;
-    matGround.diffuseTexture.vScale = Common.MEDIUM_SIZE_MAP_SUBDIVISIONS;
+    matGround.diffuseTexture.uScale = common.MEDIUM_SIZE_MAP_SUBDIVISIONS;
+    matGround.diffuseTexture.vScale = common.MEDIUM_SIZE_MAP_SUBDIVISIONS;
     matGround.specularColor = new BABYLON.Color3(0, 0, 0);
     this.mesh.material = matGround;
     this.mesh.rotation.x = Math.PI / 2;

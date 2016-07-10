@@ -1,5 +1,5 @@
 import UnitCommand from '../utils/UnitCommand';
-import Common from "../Common";
+import {common} from "../Common";
 import {IGameUnit} from "../gameUnits/IGameUnit";
 import ActionEvent = BABYLON.ActionEvent;
 import Laser from "../weapons/Laser";
@@ -20,7 +20,7 @@ export default class Core implements IGameUnit {
   modifiers:Array<any>;
   hitPoints:number = 10;
   click:(e:MouseEvent)=>void;
-  baseSpeed:number = Common.MEDIUM_SPEED;
+  baseSpeed:number = common.MEDIUM_SPEED;
   weapon:Laser = new Laser();
   mass:number = 1;
 
@@ -40,7 +40,7 @@ export default class Core implements IGameUnit {
    */
   constructor(scene, isOwn, isSelected = false) {
 
-    this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, Common.MEDIUM_UNIT_SIZE, scene);
+    this.mesh = BABYLON.Mesh.CreateSphere("sphere1", 8, common.MEDIUM_UNIT_SIZE, scene);
     // this.mesh.parentClass = this;
     this.isSelected;//selected units receive commands
     this.modifiers = [];//powerups,shields etc
