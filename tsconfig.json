@@ -1,7 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "module": "system",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outFile": "dist/tsc.js",
     "sourceMap": true
+
   },
-  "files": []
+  "files": [
+    "lib/Game.ts"
+  ],
+  "compileOnSave": true
 }

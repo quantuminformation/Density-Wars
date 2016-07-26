@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack --watch --watch-polling"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -22,18 +22,10 @@
   },
   "homepage": "https://github.com/QuantumInformation/Density-Wars",
   "devDependencies": {
-    "css-loader": "^0.23.0",
-    "html-webpack-plugin": "^2.21.0",
-    "loader": "^2.0.0",
-    "peerjs": "^0.3.14",
-    "style-loader": "^0.13.0",
-    "stylus": "^0.54.5",
-    "stylus-loader": "^2.1.1",
-    "ts-loader": "^0.8.2",
-    "typescript": "^1.7.5",
-    "webpack": "^1.11.0"
+    "typescript": "^1.8.10"
   },
   "dependencies": {
-    "babylonjs": "^2.3.0"
+    "babylonjs": "^2.3.0",
+    "systemjs": "^0.19.31"
   }
 }

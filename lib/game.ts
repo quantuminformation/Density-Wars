@@ -1,5 +1,5 @@
 import Core from "./gameUnits/Core";
-import Formations from "./utils/Formations.ts";
+import Formations from "./utils/Formations";
 import {common} from "./Common";
 import {IGameUnit} from "./gameUnits/IGameUnit";
 import Ground from "./Ground";

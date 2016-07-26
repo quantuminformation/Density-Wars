@@ -1,4 +1,4 @@
-import RemotePlayer from "../RemotePlayer.ts";
+import {RemotePlayer} from "../RemotePlayer";
 
 
 /**
