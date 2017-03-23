@@ -52,7 +52,8 @@ module.exports = {
         // https://github.com/airbnb/javascript#comments--spaces
         // http://eslint.org/docs/rules/spaced-comment
         "spaced-comment": ["error", "always"],
-
+    
+        "indent": ["error", 2],
         // https://github.com/airbnb/javascript#whitespace--before-blocks
         // http://eslint.org/docs/rules/space-before-blocks
         // "space-before-blocks": [
