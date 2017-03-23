@@ -8,7 +8,6 @@ module.exports = {
         "describe": true,
         "it": true,
         "afterEach": true,
-        "$fsbx": true,
     },
     "plugins": [
         // "typescript",
@@ -92,9 +91,7 @@ module.exports = {
         "no-multiple-empty-lines": [2, {
             "max": 1,
         }],
-        // "no-unexpected-multiline": 2,
-
-
+        
         // http://eslint.org/docs/rules/comma-dangle
         "comma-dangle": [
             "error",
@@ -123,11 +120,6 @@ module.exports = {
         "no-spaced-func": 2,
         "semi-spacing": 2,
         "key-spacing": [2],
-        // "indent": ["error", 4, {"SwitchCase": 1}],
-        // "indent": ["error", 4],
-
-        // "yield-star-spacing": [2, "both"],
-        // "yoda": [2, "never"],
 
         // es6 ---------
         // https://github.com/airbnb/javascript#objects
@@ -191,9 +183,6 @@ module.exports = {
         // https://github.com/airbnb/javascript#whitespace--chains
         // https://github.com/airbnb/javascript#whitespace--after-blocks
         // http://jscs.info/rule/disallowNodeTypes
-
-        // https://github.com/airbnb/javascript#whitespace--padded-blocks
-        // "padded-blocks": ["error", "never"],
 
         // https://github.com/airbnb/javascript#whitespace--in-parens
         // http://eslint.org/docs/rules/space-in-parens.html
