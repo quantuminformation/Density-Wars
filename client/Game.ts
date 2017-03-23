@@ -18,7 +18,7 @@ import './styles/index'
 
 
 class Game {
-  starting2Numb erOfCores:number = 6;
+  starting2NumberOfCores:number = 6;
   lobby:Lobby = new Lobby();
 
   canvas:HTMLCanvasElement;
