@@ -3,10 +3,10 @@ Density-Wars
 
 RTS game running on WebGL using BabylonJS.
 
-###(Demo)
+# (Demo)
 [Live demo](http://quantuminformation.github.io/Density-Wars/)
 
-Aim
+# Aim
 ===
 
 Each side has a respawn base with 10 mobile spheres (core) that project lasers to defeat enemies. When each players 
@@ -15,26 +15,22 @@ The aim is to take over the oppositions base. Care must be employed to maximise 
 
 Resources can me discovered on the map to help boost defences and capabilities
 
-Roadmap
-=======
+# Roadmap
 1) Create basic gameplay
 2) Create Multiplayer peer to peer gaming
 3) Create leaderboard and ranking
+4) Create AI using machine learning 
 
 
-#For developers
-##TSD
+# Running locally
 
-I use the tsd manager
-see https://github.com/DefinitelyTyped/tsd
+* run `npm i` in the root directory
+* run `npm run build` in the root directory
+* run `npm start` in the root directory
+* open browser on localhost:3000
 
-###getting t.ds files
+# Inspired by
 
-```
-npm install tsd -g
-tsd reinstall --save -o
-```
+* [GO] (https://www.gokgs.com)
+* Red Alert
 
-###updating
-
- `tsd update --save --overwrite`

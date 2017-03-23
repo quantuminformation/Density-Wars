@@ -2,6 +2,5 @@
   "compilerOptions": {
     "target": "es5",
     "sourceMap": true
-  },
-  "files": []
+  }
 }
