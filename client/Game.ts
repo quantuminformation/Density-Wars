@@ -7,22 +7,18 @@ import {IGameUnit} from "./gameUnits/IGameUnit";
 import Ground from "./Ground";
 import Lobby from "./hud/Lobby";
 import MathHelpers from "./MathHelpers";
-import CenterOfMassMarker from "./gameUnits/CenterOfMassMarker";
+import {CenterOfMassMarker} from "./gameUnits/CenterOfMassMarker";
 import GameOverlay from "./hud/GameOverlay";
-import PickingInfo = BABYLON.PickingInfo;
-import Vector3 = BABYLON.Vector3;
-import FreeCamera = BABYLON.FreeCamera;
-
-
-declare function require(module:string):any
+let PickingInfo = BABYLON.PickingInfo;
+let Vector3 = BABYLON.Vector3;
+let FreeCamera = BABYLON.FreeCamera;
 
 import './styles/index'
 
 
-var self;//todo not sure about this
 
 class Game {
-  startingNumberOfCores:number = 6;
+  starting2Numb erOfCores:number = 6;
   lobby:Lobby = new Lobby();
 
   canvas:HTMLCanvasElement;
@@ -41,8 +37,6 @@ class Game {
   gameOverlay:GameOverlay = new GameOverlay(this._scene, this.camera);
 
   constructor() {
-    self = this;
-
 
     this.canvas = this.engine.getRenderingCanvas();
 
@@ -63,9 +57,9 @@ class Game {
 
       this._scene.render();
     });
-    window.addEventListener("resize", function () {
+    window.addEventListener("resize",  () =>{
       //todo some logic
-      self.engine.resize();
+      this.engine.resize();
     });
 
     this.gameOverlay.showUnitsStatus(this.gameUnits);
@@ -126,13 +120,13 @@ class Game {
       }
 
       //check for ground hit
-      if (pickResult.pickedMesh === self.ground.mesh) {
+      if (pickResult.pickedMesh === this.ground.mesh) {
 
         //ground hit, now check if any units selected
-        if (self.gameUnits.filter((item:IGameUnit) => {
+        if (this.gameUnits.filter((item:IGameUnit) => {
             return item.isSelected;
           }).length) {
-          self.addMoveCommand(pickResult.pickedPoint);
+          this.addMoveCommand(pickResult.pickedPoint);
         }
       } else {
 

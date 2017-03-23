@@ -26,18 +26,11 @@ const commonConfig = merge([
           loader: 'awesome-typescript-loader'
         },
         {
-          test: /\.pcss$/,
+          test: /\.p?css$/,
           loaders: [
             'style-loader',
-            'css-loader?importLoaders=1',
+            'css-loader?importLoaders=1,url=false',
             'postcss-loader'
-          ]
-        },
-        {
-          test: /\.css$/,
-          loaders: [
-            'style-loader',
-            'css-loader'
           ]
         }
       ]
@@ -45,7 +38,7 @@ const commonConfig = merge([
 
     resolve: {
       // you can now require('file') instead of require('file.js')
-      extensions: ['.js', '.json', '.pcss']
+      extensions: ['.ts', '.json', '.pcss']
     },
 
     plugins: [

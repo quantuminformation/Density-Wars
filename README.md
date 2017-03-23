@@ -7,7 +7,6 @@ RTS game running on WebGL using BabylonJS.
 [Live demo](http://quantuminformation.github.io/Density-Wars/)
 
 # Aim
-===
 
 Each side has a respawn base with 10 mobile spheres (core) that project lasers to defeat enemies. When each players 
 sphere is within range of another same side sphere there power and defence capabilities are increased. 
@@ -31,6 +30,6 @@ Resources can me discovered on the map to help boost defences and capabilities
 
 # Inspired by
 
-* [GO] (https://www.gokgs.com)
+* [GO] (https://en.wikipedia.org/wiki/Go_(game))
 * Red Alert
 

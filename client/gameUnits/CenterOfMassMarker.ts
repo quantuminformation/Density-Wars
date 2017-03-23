@@ -13,7 +13,7 @@ import Laser from "../weapons/Laser";
 
 
 //todo team colours, friendlies
-export default class CenterOfMassMarker {
+export  class CenterOfMassMarker {
   mesh: BABYLON.Mesh;
 
   isOwn: boolean;
