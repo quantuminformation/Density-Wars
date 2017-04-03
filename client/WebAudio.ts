@@ -1,14 +1,12 @@
-import {common} from "./Common";
+import {common} from './Common'
 /**
  *
  * Game sounds
  */
 export default class WebAudio {
 
-
-  constructor(scene) {
+  constructor (scene) {
 
   }
 
 }
-

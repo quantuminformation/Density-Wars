@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const merge = require('webpack-merge');
+var WebpackBuildNotifierPlugin = require("webpack-build-notifier");
 
 const parts = require('./webpack.parts');
 
@@ -20,25 +21,36 @@ const commonConfig = merge([
     },
     devtool: "source-map",
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.ts$/,
-          loader: 'awesome-typescript-loader'
+          use: [{
+            loader: 'awesome-typescript-loader'
+
+          }]
         },
         {
           test: /\.p?css$/,
-          loaders: [
-            'style-loader',
-            'css-loader?importLoaders=1,url=false',
-            'postcss-loader'
+          use: [
+            {
+              loader: 'style-loader'
+            },
+            {
+              loader: 'css-loader',
+              options: {
+                importLoaders: 1, url: false
+              }
+            },
+            {
+              loader: 'postcss-loader'
+            }
           ]
         }
-      ]
+      ],
     },
-
     resolve: {
       // you can now require('file') instead of require('file.js')
-      extensions: ['.ts', '.json', '.pcss']
+      extensions: ['.ts', '.js', '.pcss']
     },
 
     plugins: [
@@ -47,7 +59,10 @@ const commonConfig = merge([
         hash: true,
         filename: 'index.html',
         template: PATHS.app + '/index.html',
-      })
+      }),
+      new WebpackBuildNotifierPlugin({
+        title: "My Project Webpack Build"
+      }),
     ]
   },
 ]);
@@ -66,16 +81,18 @@ const developmentConfig = merge([
   parts.loadImages(),
 
   /*  parts.devServer({
-      // Customize host/port here if needed
-      host: process.env.HOST,
-      port: process.env.PORT,
-    })*/
+   // Customize host/port here if needed
+   host: process.env.HOST,
+   port: process.env.PORT,
+   })*/
 ]);
 
 module.exports = (env) => {
   if (env === 'production') {
+    console.log('using prod config')
     return merge(commonConfig, productionConfig);
   }
+  console.log('using dev')
 
   return merge(commonConfig, developmentConfig);
 };

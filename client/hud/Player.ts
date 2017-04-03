@@ -1,14 +1,10 @@
-
-
 /**
  * Displays the Players indo
  */
 class PlayersUI {
-  visible:boolean
+  visible: boolean
 
-
-  constructor() {
+  constructor () {
   }
 
 }
-

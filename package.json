@@ -4,9 +4,9 @@
   "description": "Real time peer to peer RTS game running on WebGL",
   "main": "main.js",
   "scripts": {
-    "lint": "eslint src/*.ts src/**/*.ts src/**/**/*.ts test/*.js test/**/*.js",
+    "lint": "tslint client/**/*.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack && cp node_modules/babylonjs/babylon.js server/public",
+    "build": "webpack --watch --watch-poll && cp node_modules/babylonjs/babylon.js server/public",
     "start": "npm run build & node server/bin/www"
   },
   "repository": {
@@ -24,9 +24,6 @@
   },
   "homepage": "https://github.com/QuantumInformation/Density-Wars",
   "devDependencies": {
-    "eslint": "^3.16.1",
-    "tslint-eslint-rules": "^3.4.0",
-    "typescript-eslint-parser": "^2.0.0",
     "@types/node": "^7.0.4",
     "awesome-typescript-loader": "^3.1.2",
     "babel-core": "^6.18.2",
@@ -34,9 +31,9 @@
     "babel-preset-es2015": "^6.18.0",
     "body-parser": "~1.17.1",
     "cookie-parser": "~1.4.3",
-    "css-loader": "^0.27.1",
+    "css-loader": "^0.28.0",
     "express": "~4.15.2",
-    "file-loader": "^0.10.1",
+    "file-loader": "^0.11.0",
     "html-webpack-plugin": "https://github.com/ampedandwired/html-webpack-plugin",
     "morgan": "^1.8.1",
     "postcss-css-variables": "^0.7.0",
@@ -46,7 +43,9 @@
     "postcss-nested": "^1.0.0",
     "serve-favicon": "~2.4.1",
     "style-loader": "^0.16.0",
+    "tslint": "^5.0.0",
     "typescript": "^2.0.3",
+    "typescript-eslint-parser": "^2.0.0",
     "url-loader": "^0.5.8",
     "webpack": "^2.3.1",
     "webpack-build-notifier": "^0.1.13",
@@ -54,6 +53,7 @@
     "webpack-merge": "^4.1.0"
   },
   "dependencies": {
-    "babylonjs": "^2.3.0"
+    "babylonjs": "^2.3.0",
+    "tslint-config-standard": "^4.0.0"
   }
 }

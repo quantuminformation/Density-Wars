@@ -44,7 +44,6 @@ export const common = {
 
 }
 
-
 /*
  class KEYS {
  BACKSPACE  8

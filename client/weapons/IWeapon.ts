@@ -1,5 +1,5 @@
-import {IGameUnit} from "../gameUnits/IGameUnit";
+import { IGameUnit } from '../gameUnits/IGameUnit'
 export interface IWeapon {
-  initialDamage:number;
-  fire:(from:IGameUnit, to:IGameUnit, scene:BABYLON.Scene)=>void;
+  initialDamage: number
+  fire: (from: IGameUnit, to: IGameUnit, scene: BABYLON.Scene) => void
 }
