@@ -15,7 +15,7 @@ export default class Ground {
     // Creation of a plane with a texture
     this.mesh = BABYLON.Mesh.CreatePlane('ground', common.MEDIUM_SIZE_MAP, scene)
     let matGround = new BABYLON.StandardMaterial('matGround', scene)
-    matGround.diffuseTexture = new BABYLON.Texture('./background.png', scene);
+    matGround.diffuseTexture = new BABYLON.Texture(url, scene);
     (matGround.diffuseTexture as Texture).uScale = common.MEDIUM_SIZE_MAP_SUBDIVISIONS;
     (matGround.diffuseTexture as Texture).vScale = common.MEDIUM_SIZE_MAP_SUBDIVISIONS
     matGround.specularColor = new BABYLON.Color3(0, 0, 0)
@@ -24,6 +24,8 @@ export default class Ground {
     this.mesh.position = new BABYLON.Vector3(0, 0, 0)
   }
 }
+var url = require("file-loader!./assets/img/background.png");
+
 
 /*
 let img = new Image()
