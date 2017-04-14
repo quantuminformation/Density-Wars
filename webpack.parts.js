@@ -7,7 +7,7 @@ exports.loadImages = ({ include, exclude, options } = {}) => ({
         exclude,
 
         use: {
-          loader: 'url-loader',
+          loader: 'file-loader',
           options,
         },
       },

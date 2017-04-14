@@ -13,7 +13,7 @@ const PATHS = {
 const commonConfig = merge([
   {
     entry: {
-      app: PATHS.app + '/Game.ts'
+      app: PATHS.app
     },
     output: {
       path: PATHS.build,
@@ -71,7 +71,6 @@ const commonConfig = merge([
 const productionConfig = merge([
   parts.loadImages({
     options: {
-      limit: 15000,
       name: '[name].[ext]',
     },
   }),
