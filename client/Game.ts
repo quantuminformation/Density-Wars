@@ -16,27 +16,33 @@ let FreeCamera = BABYLON.FreeCamera
 import './styles/index'
 
 export class Game {
-  startingNumberOfCores: number = 6
-  lobby: Lobby = new Lobby()
+  startingNumberOfCores: number = 7
+  // lobby: Lobby = new Lobby()
 
   canvas: HTMLCanvasElement
   engine: BABYLON.Engine = new BABYLON.Engine(document.getElementById('glcanvas') as HTMLCanvasElement, true)
-  private scene: BABYLON.Scene = new BABYLON.Scene(this.engine)
-  private selectedUnits: Array<IGameUnit> //this is what the user has selected, can be one ore more gameUnits
+  scene: BABYLON.Scene = new BABYLON.Scene(this.engine)
   gameUnits: Array<IGameUnit>
   camera: BABYLON.FreeCamera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 15, -40), this.scene)
 
-  //todo move to remote Users
+  // todo move to remote Users
   enemyUnits: IGameUnit[] = []
+
+  selectionPrgress = false
 
   ground: Ground
   centerOfMass: CenterOfMassMarker
+
+  get selectedUnits () {
+    return this.gameUnits.filter(unit => unit.isSelected)
+  }
 
   constructor () {
 
     this.canvas = this.engine.getRenderingCanvas()
 
     this.initScene()
+    this.adjustCanvasDimensions()
     this.addListeners()
 
     this.gameUnits = this.createInitialPlayerUnits()
@@ -56,19 +62,26 @@ export class Game {
     })
   }
 
+  /**
+   * We need this to get proper scaling of the 2d overlay canvas
+   */
+  adjustCanvasDimensions () {
+    var width = this.context.canvas.clientWidth;
+    var height = this.context.canvas.clientHeight;
+
+    this.canvas2D.width = width
+    this.canvas2D.height = height
+    this.canvas2D.height = height
+  }
+
   addListeners () {
     window.addEventListener('resize', () => {
       //todo some logic
       this.engine.resize()
-
-      var width = this.context.canvas.clientWidth;
-      var height = this.context.canvas.clientHeight;
-
-      this.canvas2D.width = width
-      this.canvas2D.height = height
+      this.adjustCanvasDimensions()
 
     })
-    this.scene.onPointerDown = this.onScenePointerDown.bind(this)
+    this.scene.onPointerUp = this.onScenePointerDown.bind(this)
 
     /**
      * Creates events related to the 2d overlay
@@ -96,11 +109,19 @@ export class Game {
         this.context.globalAlpha = 1;
 
       }
+
+      // ignore accedental mouse select moves
+      if (!(w < 4 && h < 4)) {
+        this.selectionPrgress = true
+      }
+      console.log("select progres" + this.selectionPrgress)
+
     }
+    // variable here because we want to remove it on mouse up
 
     let onPointerMoveB = onPointerMove.bind(this)
 
-      window.addEventListener('mousedown', (evt: PointerEvent) => {
+    window.addEventListener('mousedown', (evt: PointerEvent) => {
       /*
        if (evt.button !== common.MOUSE.LEFT) {
        return
@@ -108,29 +129,40 @@ export class Game {
        */
       console.log('pointer down')
 
-      // variable here because we want to remove it on mouse up
-      window.addEventListener('mousemove',onPointerMoveB)
       this.startPos = { x: this.scene.pointerX, y: this.scene.pointerY }
+      window.addEventListener('mousemove', onPointerMoveB)
     })
+
+    // todo is this better/possible combined with the scene pointer down
     window.addEventListener('mouseup', (evt: PointerEvent) => {
         /*     if (evt.button !== common.MOUSE.LEFT) {
          return
          }*/
-        console.log('pointer up')
-
-        this.context.clearRect(0, 0, this.canvas2D.width, this.canvas2D.height)
         window.removeEventListener('mousemove', onPointerMoveB)
 
-        if (this.OnSelectionEnd !== undefined) {
-          let x = Math.min(this.startPos.x, this.endPos.x)
-          let y = Math.min(this.startPos.y, this.endPos.y)
-          let w = Math.abs(this.startPos.x - this.endPos.x)
-          let h = Math.abs(this.startPos.y - this.endPos.y)
-
-          this.OnSelectionEnd(x, y, w, h)
-          h = 0
-          w = 0
+        console.log('pointer up')
+        if (!this.selectionPrgress) {
+          return
         }
+        this.selectionPrgress = false
+        console.log("select progres" + this.selectionPrgress)
+
+        this.context.clearRect(0, 0, this.canvas2D.width, this.canvas2D.height)
+        if (!this.endPos) {
+          return
+        }
+
+        let x = Math.min(this.startPos.x, this.endPos.x)
+        let y = Math.min(this.startPos.y, this.endPos.y)
+        let w = Math.abs(this.startPos.x - this.endPos.x)
+        let h = Math.abs(this.startPos.y - this.endPos.y)
+
+        // no need to select anything in this case
+        if (w === 0 || h === 0) {
+          return
+        }
+        this.OnSelectionEnd(x, y, w, h)
+
       }
     )
 
@@ -148,8 +180,9 @@ export class Game {
   private endPos
 
   onScenePointerDown (evt, pickResult: BABYLON.PickingInfo) {
+    console.log("scene pointer down")
     // ignore if not click
-    if (evt.button !== 0) {
+    if (evt.button !== 0 || this.selectionPrgress) {
       return
     }
 
@@ -190,7 +223,6 @@ export class Game {
 
       //ground hit, now check if any units selected
       if (this.gameUnits.filter((item: IGameUnit) => {return item.isSelected}).length) {
-        console.log(pickResult.pickedPoint)
         this.addMoveCommand(pickResult.pickedPoint)
       }
     } else {
@@ -225,7 +257,6 @@ export class Game {
   }
 
   addMoveCommand (pickResult: BABYLON.Vector3) {
-    console.log(pickResult)
     let selectedUnits = this.gameUnits.filter((unit: IGameUnit) => {
       return unit.isSelected
     })
@@ -239,7 +270,7 @@ export class Game {
       let distance = Math.sqrt(Math.pow(pickResult.x - unit.mesh.position.x, 2)
         + Math.pow(pickResult.z - unit.mesh.position.z, 2))
       let framesNeeded = Math.round((distance / common.MEDIUM_SPEED) * common.ANIMATIONS_FPS)
-      console.log('dist: ' + distance + ' frames' + framesNeeded)
+      // console.log('dist: ' + distance + ' frames' + framesNeeded)
 
       let animationBezierTorus = new BABYLON.Animation('animationCore', 'position',
         common.ANIMATIONS_FPS,
@@ -276,8 +307,13 @@ export class Game {
       newCore.mesh.position = new Vector3(10 + 2 * i, common.defaultY, 10 + 2 * i)
       newCore2.mesh.position = new Vector3(14 + 2 * i, common.defaultY, 10 + 2 * i)
       this.enemyUnits.push(newCore)
+      this.enemyUnits.push(newCore2)
 
     }
+  }
+
+  deselectAllUnits () {
+    this.gameUnits.forEach(unit => {unit.deselect()})
   }
 
   OnSelectionEnd (x: number, y: number, w: number, h: number) {
@@ -285,42 +321,35 @@ export class Game {
     let area: Array<BABYLON.Vector3> = new Array<BABYLON.Vector3>(4)
     let units: Array<BABYLON.AbstractMesh>
 
-    // Clear current selection of selected units
-    this.selectedUnits.length = 0
+    // Translate points to world coordinates
+    area[0] = this.scene.pick(x, y).pickedPoint
+    area[1] = this.scene.pick(x + w, y).pickedPoint
+    area[2] = this.scene.pick(x + w, y + h).pickedPoint
+    area[3] = this.scene.pick(x, y + h).pickedPoint
 
-    // In case when area is selected
-    if (w != 0 && h != 0) {
-      // Translate points to world coordinates
-      area[0] = this.scene.pick(x, y).pickedPoint
-      area[1] = this.scene.pick(x + w, y).pickedPoint
-      area[2] = this.scene.pick(x + w, y + h).pickedPoint
-      area[3] = this.scene.pick(x, y + h).pickedPoint
+    // this._selectedUnits = this._players[this._localPlayer].units.filter(
 
-      // todo use this
-      // this._selectedUnits = this._players[this._localPlayer].units.filter(
+    let toBeSelected: IGameUnit[] = this.gameUnits.filter(
+      (unit: IGameUnit) => {
+        return MathHelpers.isPointInPolyBabylon(area, unit.mesh.position) // helper is up
+      })
 
-      // Go through all units of your player and save them in an array
-      this.selectedUnits = this.gameUnits.filter(
-        (unit: IGameUnit) => {
-          //(<any>unit).mesh.type === ObjectType.UNIT &&
-          return MathHelpers.isPointInPolyBabylon(area, unit.mesh.position) // helper is up
-        })
-
-      console.log(this.selectedUnits)
+    if (!toBeSelected.length) {
+      return
     }
-    // Only one unit is selected
-    else {
-      let p = this.scene.pick(x, y)
 
-      if (!p.pickedMesh)
-        return
+    // todo option for appending selection
+    this.deselectAllUnits()
 
-      // todo check
-      // if ((<any>p).type != ObjectType.UNIT)
-      // return
+    toBeSelected.forEach(
+      (unit: IGameUnit) => {
+        if (MathHelpers.isPointInPolyBabylon(area, unit.mesh.position)) {
+          unit.select()
+        }
+      })
 
-      units.push(p.pickedMesh)
-    }
+    console.log(this.selectedUnits)
+
   }
 
   /**

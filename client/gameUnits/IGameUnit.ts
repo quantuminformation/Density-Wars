@@ -5,6 +5,7 @@ export interface IGameUnit {
   click: (e: MouseEvent) => void
   hitPoints: number // The default amount of damage this unit can take
   deselect: () => void
+  select: () => void
   mass: number
   weapon: IWeapon
   takeDamage: (amount) => void

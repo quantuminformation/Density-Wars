@@ -1,3 +1,6 @@
+///<reference path='../../node_modules/babylonjs/babylon.d.ts'/>
+
+
 import UnitCommand from '../utils/UnitCommand'
 import { common } from '../Common'
 import { IGameUnit } from '../gameUnits/IGameUnit'
@@ -13,7 +16,7 @@ import { IWeapon } from '../weapons/IWeapon'
 // todo team colours, friendlies
 export default class Core implements IGameUnit {
   mesh: BABYLON.Mesh
-  isSelected: boolean = false //selected units can receive new commands
+  private selected: boolean = false //selected units can receive new commands
   isOwn: boolean
   modifiers: Array<any>
   hitPoints: number = 10
@@ -30,6 +33,10 @@ export default class Core implements IGameUnit {
   // currentCommands:Array<any>
   currentCommand: UnitCommand // poss move to Igameunit
 
+  get isSelected(){
+    return this.selected
+  }
+
   /**
    *
    * @param scene
@@ -40,7 +47,6 @@ export default class Core implements IGameUnit {
 
     this.mesh = BABYLON.Mesh.CreateSphere('sphere1', 8, common.MEDIUM_UNIT_SIZE, scene)
     // this.mesh.parentClass = this
-    this.isSelected//selected units receive commands
     this.modifiers = []// powerups,shields etc
     this.isOwn = isOwn
 
@@ -68,13 +74,14 @@ export default class Core implements IGameUnit {
     this.mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, this.mesh.material, 'diffuseColor', this.material.diffuseColor))
   }
 
-  select (e: ActionEvent) {
-    this.isSelected = true
-    e.meshUnderPointer.showBoundingBox = true
+  select () {
+    this.selected = true
+    this.mesh.showBoundingBox = true
+    this.mesh.showBoundingBox = true
   }
 
   deselect () {
-    this.isSelected = false
+    this.selected = false
     this.mesh.showBoundingBox = false
   }
 

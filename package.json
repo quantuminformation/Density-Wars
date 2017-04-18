@@ -53,7 +53,7 @@
     "webpack-merge": "^4.1.0"
   },
   "dependencies": {
-    "babylonjs": "^2.3.0",
-    "tslint-config-standard": "^4.0.0"
+    "babylonjs": "^3.0.0-alpha",
+    "tslint-config-standard": "^5.0.2"
   }
 }
